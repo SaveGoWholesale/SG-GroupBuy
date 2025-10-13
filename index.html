@@ -726,7 +726,7 @@
         };
         
         let currentChatRequestId = null;
-        let currentLanguage = 'en';
+        let currentLanguage = 'zh';
         let selectedProducts = []; // Array to store products being added to the request
         let currentSelectedProduct = null; // Currently selected product for adding
         
@@ -2815,5 +2815,64 @@
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98dc100c87a7465c',t:'MTc2MDMyOTQxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
 
+
+<!-- Supabase integration (minimal loader) -->
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+  const supabase = createClient("https://dhbexxcngocoesowiusb.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRoYmV4eGNuZ29jb2Vzb3dpdXNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyMTAzNTAsImV4cCI6MjA3NTc4NjM1MH0.RTGWoNU4hSl2_qVgLZR3_0NBJnXQ_9dD3bwkP2mcYK0");
+
+  async function currentUser(){ const { data:{ user } } = await supabase.auth.getUser(); return user; }
+
+  async function list() {
+    const { data, error } = await supabase
+      .from('groupbuys')
+      .select('*, items:groupbuy_items(*, participants:participants(*))')
+      .order('created_at', { ascending:false }).limit(50);
+    if (error) { console.warn(error.message); return []; }
+    return (data||[]).map(gb => ({
+      id: gb.id, hostName: gb.host_name || '—',
+      items: (gb.items||[]).map(it => ({
+        productId: it.product_id, hostQuantity: it.host_quantity, totalQuantity: it.total_quantity,
+        currentQuantity: it.current_quantity, status: it.status || 'open',
+        participants: (it.participants||[]).map(p => ({ name: p.is_host ? 'Host' : 'Member', quantity: p.quantity, isHost: !!p.is_host }))
+      })),
+      notes: gb.notes || '', status: gb.status || 'open',
+      createdAt: gb.created_at ? new Date(gb.created_at) : new Date(), chatEnabled: true
+    }));
+  }
+
+  async function optOut(id){
+    const u = await currentUser(); if(!u) return alert('請先登入');
+    const { data: g } = await supabase.from('groupbuys').select('host_user').eq('id', id).single();
+    if (!g || g.host_user !== u.id) return alert('只有主辦人可以作廢');
+    await supabase.from('groupbuys').update({ status:'void' }).eq('id', id);
+    await supabase.from('groupbuy_items').update({ status:'void' }).eq('groupbuy_id', id);
+    alert('主辦人已退出，團購已作廢。');
+  }
+
+  window.SaveGoSupabase = { supabase, list, optOut, currentUser };
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const data = await list();
+      if (Array.isArray(data) && data.length) {
+        window.groupBuyRequests = data;
+        if (typeof window.renderRequests === 'function') window.renderRequests();
+      }
+    } catch (e) {}
+  });
+
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-optout-id]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-optout-id');
+    const original = btn.textContent;
+    btn.disabled = true; btn.textContent = '作廢中…';
+    try { await optOut(id); if (typeof window.renderRequests==='function') window.renderRequests(); }
+    catch (err) { alert(err?.message || '失敗'); }
+    finally { btn.disabled = false; btn.textContent = original; }
+  });
+</script>
 </body>
 </html>
