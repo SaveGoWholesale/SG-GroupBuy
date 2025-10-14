@@ -2819,8 +2819,8 @@
 <!-- Supabase integration (minimal loader) -->
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-  const supabase = createClient("https://dhbexxcngocoesowiusb.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRoYmV4eGNuZ29jb2Vzb3dpdXNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyMTAzNTAsImV4cCI6MjA3NTc4NjM1MH0.RTGWoNU4hSl2_qVgLZR3_0NBJnXQ_9dD3bwkP2mcYK0");
+  const supabase = createClient("https://jtvozlewtwiudmrpvxig.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0dm96bGV3dHdpdWRtcnB2eGlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzODMyMDgsImV4cCI6MjA3NTk1OTIwOH0.1s7z1gkrXh_c5GX9hGDP-kf0lVoafQ_tj-ztvBjfVJk");
 
   async function currentUser(){ const { data:{ user } } = await supabase.auth.getUser(); return user; }
 
