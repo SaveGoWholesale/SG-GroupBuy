@@ -6,78 +6,72 @@
   <title>Group Buy</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .btn { @apply inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700; }
-    .card { @apply rounded-2xl border border-gray-200 p-4 shadow-sm bg-white; }
-    .input { @apply w-full rounded-xl border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500; }
-    .badge { @apply inline-flex items-center justify-center rounded-full bg-red-600 text-white text-[10px] leading-none px-1.5 py-0.5; min-width: 16px; }
+    .btn{ @apply inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-4 py-2 hover:bg-indigo-700; }
+    .input{ @apply w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none; }
+    .card{ @apply rounded-2xl border p-4 shadow-sm bg-white; }
+    .badge{ @apply inline-flex items-center justify-center rounded-full bg-red-600 text-white text-[10px] px-1.5 py-0.5; min-width:16px;}
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
+  <!-- Header -->
   <header class="bg-white border-b">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="h-8 w-8 rounded-lg bg-indigo-600"></div>
-        <span class="font-bold text-lg">GroupBuy</span>
-      </div>
-      <nav class="flex items-center gap-4 text-sm">
-        <button class="underline" onclick="show('browse')">瀏覽</button>
-        <button class="underline" onclick="show('inventory')">庫存</button>
-        <button class="underline" onclick="show('create')">發起</button>
-        <button class="underline" onclick="show('history')">歷史</button>
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="#" class="font-semibold" onclick="show('list');return false;">Group Buy</a>
+      <nav class="flex items-center gap-3 text-sm">
+        <button class="underline" onclick="show('list')">探索團購</button>
+        <button class="underline" onclick="show('create')">發起團購</button>
         <div class="relative">
-          <button id="notifBtn" class="relative rounded-lg border px-3 py-1.5">通知<span id="notifBadge" class="badge absolute -top-1 -right-1 hidden">0</span></button>
-          <div id="notifPanel" class="hidden absolute right-0 mt-2 w-80 rounded-xl border bg-white shadow">
-            <div id="notifList" class="max-h-80 overflow-auto"></div>
+          <button id="notifBtn" class="relative rounded-lg border px-3 py-1.5">通知
+            <span id="notifBadge" class="badge absolute -top-1 -right-1 hidden">0</span>
+          </button>
+          <div id="notifPanel" class="hidden absolute right-0 mt-2 w-80 bg-white border rounded-xl shadow">
+            <div id="notifList" class="max-h-72 overflow-auto"></div>
           </div>
         </div>
-        <div class="relative">
-          <button id="userBtn" class="rounded-lg border px-3 py-1.5">登入</button>
-          <div id="userPanel" class="hidden absolute right-0 mt-2 w-80 rounded-xl border bg-white shadow p-3 space-y-2">
-            <div class="space-y-2" id="authBox">
-              <input id="email" class="input" placeholder="Email" type="email" />
-              <input id="password" class="input" placeholder="密碼" type="password" />
-              <div class="flex gap-2">
-                <button id="signup" class="btn">註冊</button>
-                <button id="login" class="btn">登入</button>
-                <button id="logout" class="btn bg-gray-600 hover:bg-gray-700">登出</button>
-              </div>
-              <button id="reset" class="btn bg-emerald-600 hover:bg-emerald-700 w-full">以 Email 重設密碼</button>
-              <div id="authMsg" class="text-xs text-indigo-700"></div>
-            </div>
-            <div id="whoami" class="hidden text-sm"></div>
-          </div>
-        </div>
+        <button id="lang" class="rounded-lg border px-3 py-1.5">EN</button>
       </nav>
     </div>
   </header>
 
+  <!-- Auth + notify -->
+  <section class="max-w-6xl mx-auto mt-4 px-4">
+    <div class="card">
+      <div class="grid md:grid-cols-3 gap-4">
+        <div>
+          <h3 class="font-semibold mb-2">帳號登入 / 註冊（Email）</h3>
+          <input id="authEmail" class="input" type="email" placeholder="Email">
+          <input id="authPass" class="input mt-2" type="password" placeholder="密碼">
+          <div class="flex gap-2 mt-2">
+            <button class="btn" id="signup">註冊</button>
+            <button class="btn" id="login">登入</button>
+            <button class="btn bg-gray-600 hover:bg-gray-700" id="logout">登出</button>
+          </div>
+          <button class="btn bg-emerald-600 hover:bg-emerald-700 mt-2" id="reset">以 Email 重設密碼</button>
+          <div id="authMsg" class="text-sm text-blue-700 mt-2"></div>
+        </div>
+        <div>
+          <h3 class="font-semibold mb-2">通知設定</h3>
+          <button id="enablePush" class="btn">允許瀏覽器通知</button>
+          <button id="testPush" class="btn bg-sky-600 hover:bg-sky-700 mt-2">測試通知</button>
+          <div id="notifyMsg" class="text-sm text-blue-700 mt-2"></div>
+        </div>
+        <div>
+          <h3 class="font-semibold mb-2">狀態</h3>
+          <div id="status" class="text-sm text-gray-700">未登入</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main -->
   <main class="max-w-6xl mx-auto px-4 py-6 space-y-8">
-    <!-- Browse -->
-    <section id="browse" class="space-y-4">
+    <!-- List -->
+    <section id="list" class="space-y-4">
       <div class="flex items-center justify-between gap-3">
         <h1 class="text-2xl font-semibold">團購列表</h1>
-        <input id="search" class="input max-w-md" placeholder="搜尋商品或團購…" />
+        <input id="search" class="input max-w-md" placeholder="搜尋商品或團購…">
       </div>
-      <div id="list" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
-    </section>
-
-    <!-- Inventory -->
-    <section id="inventory" class="hidden space-y-4">
-      <h2 class="text-2xl font-semibold">庫存</h2>
-      <div class="card space-y-2">
-        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <input id="invSku" class="input" placeholder="SKU（唯一）" />
-          <input id="invNameZh" class="input" placeholder="中文名稱" />
-          <input id="invNameEn" class="input" placeholder="英文名稱" />
-          <input id="invWeight" class="input" placeholder="單箱重量（lbs）" type="number" min="1" />
-        </div>
-        <div class="grid sm:grid-cols-3 gap-3">
-          <input id="invImage" class="input" placeholder="圖片 URL（可空）" />
-          <input id="invStock" class="input" placeholder="庫存數量（箱）" type="number" min="0" />
-          <button class="btn" onclick="addProduct()">新增商品</button>
-        </div>
-      </div>
-      <div id="invGrid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      <div id="grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
     </section>
 
     <!-- Create -->
@@ -85,264 +79,279 @@
       <h2 class="text-2xl font-semibold">發起團購</h2>
       <div class="card space-y-3">
         <div class="grid sm:grid-cols-2 gap-3">
-          <input id="cSku" class="input" placeholder="從庫存輸入 SKU（例：P001）" />
-          <input id="cHostQty" class="input" placeholder="主辦人數量" type="number" min="1" value="5" />
-          <input id="cTotalQty" class="input" placeholder="總數量" type="number" min="1" value="20" />
-          <input id="cMin" class="input" placeholder="最小起訂量" type="number" min="1" value="5" />
+          <input id="productId" class="input" placeholder="商品代碼（例：P001）">
+          <input id="hostQty" class="input" type="number" min="1" value="5" placeholder="主辦人數量">
+          <input id="totalQty" class="input" type="number" min="1" value="20" placeholder="總數量">
+          <input id="minOrder" class="input" type="number" min="1" value="5" placeholder="最小起訂量">
         </div>
-        <textarea id="cNotes" class="input" placeholder="備註（取貨地點、時間等）"></textarea>
-        <button class="btn" onclick="createGroup()">建立請求</button>
+        <textarea id="notes" class="input" placeholder="備註（取貨地點、時間等）"></textarea>
+        <button class="btn" id="createBtn">建立請求</button>
         <div id="createMsg" class="text-sm text-gray-600"></div>
       </div>
     </section>
 
-    <!-- History -->
-    <section id="history" class="hidden space-y-4">
-      <h2 class="text-2xl font-semibold">我的紀錄</h2>
-      <div id="histGrid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
-    </section>
-
     <!-- Detail -->
-    <section id="detail" class="hidden space-y-4">
-      <button class="underline text-sm" onclick="show('browse')">← 返回列表</button>
-      <div id="detailWrap" class="space-y-6"></div>
-      <div id="chatWrap" class="card space-y-2 hidden">
-        <div class="font-medium">群聊</div>
-        <div id="chatLog" class="h-64 overflow-auto space-y-2 border rounded-lg p-3"></div>
-        <div class="flex gap-2">
-          <input id="chatInput" class="input flex-1" placeholder="輸入訊息…" />
-          <button class="btn" onclick="sendMessage()">送出</button>
-        </div>
-      </div>
-      <div id="chatLocked" class="card text-sm text-gray-600 hidden">只有全部數量滿足後才能聊天。</div>
+    <section id="detail" class="hidden">
+      <button class="underline text-sm" onclick="show('list')">← 返回列表</button>
+      <div id="detailWrap" class="mt-4 space-y-6"></div>
     </section>
   </main>
 
+  <!-- Supabase + App -->
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-    if (!window.SG?.supabase) {
-      window.SG = window.SG || {};
-      window.SG.supabase = createClient("https://bwlqwrlsibmqttndymzu.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3bHF3cmxzaWJtcXR0bmR5bXp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDA0MzcsImV4cCI6MjA3NjA3NjQzN30.QQ8Lncmyl_VfP4a_hc9JP-W9YdlcRl21-8N4LTi2WDM", {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: window.localStorage }
-      });
-    }
-    const supabase = window.SG.supabase;
 
-    const $ = s => document.querySelector(s);
-    const $$ = s => Array.from(document.querySelectorAll(s));
-    const state = { list: [], inventory: [], me: null, currentGroupId: null, chatChannel: null };
+    // YOUR PROJECT KEYS (as requested)
+    const SUPABASE_URL = "https://bwlqwrlsibmqttndymzu.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3bHF3cmxzaWJtcXR0bmR5bXp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDA0MzcsImV4cCI6MjA3NjA3NjQzN30.QQ8Lncmyl_VfP4a_hc9JP-W9YdlcRl21-8N4LTi2WDM";
 
-    function show(name) {
-      ['browse','inventory','create','history','detail'].forEach(id=>$('#'+id).classList.add('hidden'));
-      $('#'+name).classList.remove('hidden');
-      if (name==='browse') refreshList();
-      if (name==='inventory') refreshInventory();
-      if (name==='history') refreshHistory();
-    }
-    $('#userBtn').onclick = () => $('#userPanel').classList.toggle('hidden');
-    $('#notifBtn').onclick = () => $('#notifPanel').classList.toggle('hidden');
-
-    // ---------- Auth ----------
-    async function updateAuthUI() {
-      const { data: { session } } = await supabase.auth.getSession();
-      state.me = session?.user || null;
-      $('#whoami').classList.toggle('hidden', !state.me);
-      $('#authBox').classList.toggle('hidden', !!state.me);
-      $('#userBtn').textContent = state.me ? (state.me.email || '已登入') : '登入';
-      if (state.me) { $('#whoami').textContent = `已登入：${state.me.email||state.me.phone}`; }
-    }
-    await updateAuthUI();
-    supabase.auth.onAuthStateChange(updateAuthUI);
-
-    $('#signup').onclick = async () => {
-      const email = $('#email').value.trim(); const password = $('#password').value;
-      const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
-      $('#authMsg').textContent = error ? error.message : '註冊成功，請查收驗證信。';
-    };
-    $('#login').onclick = async () => {
-      const email = $('#email').value.trim(); const password = $('#password').value;
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      $('#authMsg').textContent = error ? error.message : '登入成功';
-    };
-    $('#logout').onclick = async () => { await supabase.auth.signOut(); $('#authMsg').textContent='已登出'; };
-    $('#reset').onclick = async () => {
-      const email = $('#email').value.trim();
-      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/reset' });
-      $('#authMsg').textContent = error ? error.message : '已寄送重設密碼連結。';
-    };
-
-    // ---------- Inventory ----------
-    async function refreshInventory() {
-      const { data } = await supabase.from('products').select('*').order('name_zh');
-      state.inventory = data||[];
-      $('#invGrid').innerHTML = (state.inventory||[]).map(p => `
-        <div class="card">
-          <div class="text-sm text-gray-500">SKU：${p.sku}</div>
-          <div class="font-medium">${p.name_zh||'-'} / ${p.name_en||'-'}</div>
-          <div class="text-sm text-gray-500">重量：${p.case_weight} lbs · 庫存：${p.stock}</div>
-        </div>
-      `).join('') || '<div class="text-gray-500">—</div>';
-    }
-    window.addProduct = async function() {
-      const sku=$('#invSku').value.trim(); const name_zh=$('#invNameZh').value.trim(); const name_en=$('#invNameEn').value.trim();
-      const case_weight=parseInt($('#invWeight').value||'0',10); const image_url=$('#invImage').value.trim(); const stock=parseInt($('#invStock').value||'0',10);
-      const { error } = await supabase.from('products').insert({ sku, name_zh, name_en, case_weight, image_url, stock });
-      if (error) return alert(error.message); alert('新增成功'); refreshInventory();
-    }
-
-    // ---------- Browse/List ----------
-    async function refreshList() {
-      const q = ($('#search').value||'').toLowerCase();
-      const { data } = await supabase.from('groupbuys')
-        .select('*, items:groupbuy_items(*), host:profiles!groupbuys_host_user_fkey(username)')
-        .order('created_at', { ascending: false })
-        .limit(50);
-      state.list = data||[];
-      const filtered = state.list.filter(gb => !q || (gb.items||[]).some(it => (it.sku||'').toLowerCase().includes(q)));
-      $('#list').innerHTML = filtered.map(gb => {
-        const it = gb.items?.[0]||{};
-        const p = Math.round(100 * (it.current_quantity||0) / Math.max(1,(it.total_quantity||1)));
-        return `
-          <div class="card flex flex-col gap-2">
-            <div class="text-sm text-gray-600">主辦：${gb.host?.username||'—'}</div>
-            <div class="text-xs text-gray-600">進度：${it.current_quantity||0} / ${it.total_quantity||0}</div>
-            <div class="w-full h-2 bg-gray-100 rounded overflow-hidden"><div class="h-2 bg-indigo-500" style="width:${p}%"></div></div>
-            <div class="flex justify-between items-center mt-2">
-              <button class="underline" onclick="openDetail('${gb.id}')">詳情</button>
-              <span class="text-xs px-2 py-1 rounded bg-gray-100">${gb.status}</span>
-            </div>
-          </div>`;
-      }).join('') || '<div class="text-gray-500">—</div>';
-    }
-    $('#search').addEventListener('input', refreshList);
-
-    // ---------- Create ----------
-    window.createGroup = async function() {
-      const { data: { user } } = await supabase.auth.getUser(); if(!user) return $('#createMsg').textContent='請先登入';
-      const sku = $('#cSku').value.trim(); const host_quantity = parseInt($('#cHostQty').value||'1',10);
-      const total_quantity = parseInt($('#cTotalQty').value||'1',10); const min_order = parseInt($('#cMin').value||'1',10);
-      const notes = $('#cNotes').value.trim();
-      const { data: gb, error: e1 } = await supabase.from('groupbuys').insert({ host_user:user.id, notes }).select('*').single();
-      if (e1) return $('#createMsg').textContent=e1.message;
-      await supabase.from('groupbuy_items').insert({
-        groupbuy_id: gb.id, sku, host_quantity, total_quantity, current_quantity: host_quantity, min_order
-      });
-      await supabase.from('participants').insert({
-        groupbuy_id: gb.id, user_id: user.id, quantity: host_quantity, is_host: true
-      });
-      $('#createMsg').textContent='已建立';
-      refreshList();
-      show('browse');
-    }
-
-    // ---------- Detail + Join + Opt-out + Chat ----------
-    async function isFulfilled(gb) {
-      return (gb.items||[]).every(it => (it.current_quantity||0) >= (it.total_quantity||0));
-    }
-    window.openDetail = async function(id) {
-      const { data, error } = await supabase.from('groupbuys').select('*, items:groupbuy_items(*), host:profiles!groupbuys_host_user_fkey(username)').eq('id', id).single();
-      if (error) return alert(error.message);
-      const gb = data;
-      state.currentGroupId = id;
-
-      const it = gb.items?.[0]||{};
-      const done = await isFulfilled(gb);
-
-      $('#detailWrap').innerHTML = `
-        <div class="card space-y-2">
-          <div class="text-lg font-semibold">團購詳情</div>
-          <div class="text-sm text-gray-600">主辦：${gb.host?.username||'—'}</div>
-          <div class="text-sm text-gray-600">SKU：${it.sku||'—'} · MOQ：<b>${it.min_order||1}</b></div>
-          <div class="text-sm text-gray-600">進度：<b>${it.current_quantity||0} / ${it.total_quantity||0}</b></div>
-          <div class="flex gap-3 items-center">
-            <input id="joinQty" type="number" min="1" value="1" class="input w-24" />
-            <button class="btn" onclick="joinGroup('<built-in function id>')">參加</button>
-            <button class="rounded-xl px-3 py-2 border" data-optout-id="<built-in function id>">主辦人退出</button>
-          </div>
-          <div id="detailMsg" class="text-sm text-indigo-700"></div>
-        </div>`;
-
-      // Chat gating
-      $('#chatLocked').classList.toggle('hidden', done);
-      $('#chatWrap').classList.toggle('hidden', !done);
-      if (done) setupChat(id);
-      show('detail');
-    }
-
-    window.joinGroup = async function(id) {
-      const qty = Math.max(1, parseInt($('#joinQty').value||'1',10));
-      const { data:item, error:ierr } = await supabase.from('groupbuy_items').select('id,total_quantity,current_quantity').eq('groupbuy_id', id).order('created_at').limit(1).single();
-      if (ierr) return $('#detailMsg').textContent = '找不到團購';
-      if (item.current_quantity + qty > item.total_quantity) return $('#detailMsg').textContent='超出剩餘數量';
-      const { data: { user } } = await supabase.auth.getUser(); if(!user) return $('#detailMsg').textContent='請先登入';
-      await supabase.from('groupbuy_items').update({ current_quantity: item.current_quantity + qty }).eq('id', item.id);
-      await supabase.from('participants').insert({ groupbuy_id:id, user_id:user.id, quantity:qty, is_host:false });
-      $('#detailMsg').textContent='加入成功';
-      openDetail(id); refreshList();
-    }
-
-    document.addEventListener('click', async (e)=>{
-      const btn=e.target.closest('[data-optout-id]'); if(!btn) return;
-      const id=btn.getAttribute('data-optout-id'); const original=btn.textContent;
-      btn.disabled=true; btn.textContent='作廢中…';
-      try {
-        const { data: { user } } = await supabase.auth.getUser(); if(!user) throw new Error('請先登入');
-        const { data: group } = await supabase.from('groupbuys').select('host_user').eq('id', id).single();
-        if(!group || group.host_user !== user.id) throw new Error('只有主辦人可以作廢');
-        await supabase.from('groupbuys').update({status:'void'}).eq('id', id);
-        await supabase.from('groupbuy_items').update({status:'void'}).eq('groupbuy_id', id);
-        alert('主辦人已退出，團購已作廢。');
-        refreshList();
-        if(state.currentGroupId===id) openDetail(id);
-      } catch(err) { alert(err.message||'失敗'); }
-      finally { btn.disabled=false; btn.textContent=original; }
+    // Singleton client with persisted sessions (fixes logout-on-refresh)
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: window.localStorage }
     });
 
-    // ---------- Chat (Realtime) ----------
-    async function setupChat(groupId) {
-      const { data: msgs } = await supabase.from('messages')
-        .select('*, author:profiles!messages_user_id_fkey(username)')
-        .eq('groupbuy_id', groupId).order('created_at');
-      const log = $('#chatLog');
-      log.innerHTML = (msgs||[]).map(m => `<div class="text-sm"><b>${m.author?.username||'用戶'}：</b> ${m.content}</div>`).join('');
+    // Helpers
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => Array.from(document.querySelectorAll(s));
+    const state = { lang: "zh", list: [], currentId: null, notifications: [] };
 
-      if (state.chatChannel) { await state.chatChannel.unsubscribe(); state.chatChannel=null; }
-      const channel = supabase.channel('messages-'+groupId);
-      channel.on('postgres_changes', { event: 'INSERT', schema:'public', table:'messages', filter:`groupbuy_id=eq.${groupId}` }, (payload) => {
-        const m = payload.new;
-        const el = document.createElement('div');
-        el.className='text-sm';
-        el.innerHTML = `<b>${m.username||'用戶'}：</b> ${m.content}`;
-        log.appendChild(el);
-        log.scrollTop = log.scrollHeight;
+    function show(which){ $("#list").classList.toggle("hidden", which!=="list");
+      $("#create").classList.toggle("hidden", which!=="create");
+      $("#detail").classList.toggle("hidden", which!=="detail"); }
+
+    function pct(cur, tot){ tot = Math.max(1, tot||1); return Math.min(100, Math.round(100* (cur||0)/tot)); }
+    function fulfilled(gb){ return (gb.items||[]).every(it => (it.current_quantity||0) >= (it.total_quantity||0)); }
+
+    // Language toggle
+    $("#lang").onclick = ()=>{ state.lang = state.lang==="zh" ? "en" : "zh"; $("#lang").textContent = state.lang==="zh" ? "EN" : "中文"; renderList(); if(state.currentId) openDetail(state.currentId); };
+
+    // Notifications UI
+    $("#notifBtn").onclick = async () => {
+      $("#notifPanel").classList.toggle("hidden");
+      if (!state.notifications.length) await loadNotifications();
+      renderNotifications();
+    };
+    function renderNotifications(){
+      const list = $("#notifList");
+      if (!state.notifications.length){
+        list.innerHTML = '<div class="p-4 text-center text-gray-500">沒有通知</div>';
+        $("#notifBadge").classList.add("hidden");
+        return;
+      }
+      $("#notifBadge").classList.remove("hidden");
+      $("#notifBadge").textContent = String(state.notifications.length);
+      list.innerHTML = state.notifications.map((n,i)=>`
+        <button class="w-full text-left p-3 border-b hover:bg-gray-50" data-idx="${i}">
+          <div class="text-sm text-gray-900">${n.text||"—"}</div>
+          <div class="text-xs text-gray-500">${new Date(n.created_at).toLocaleString()}</div>
+        </button>
+      `).join("");
+      $$("#notifList [data-idx]").forEach(btn => btn.onclick = async (e)=>{
+        const i = +e.currentTarget.dataset.idx;
+        const n = state.notifications.splice(i,1)[0];
+        renderNotifications();
+        if(n?.id) await supabase.from("notifications").update({read:true}).eq("id", n.id);
       });
-      await channel.subscribe();
-      state.chatChannel = channel;
     }
-    window.sendMessage = async function() {
-      if (!state.currentGroupId) return;
-      const { data: { user } } = await supabase.auth.getUser(); if(!user) return alert('請先登入');
-      const text = $('#chatInput').value.trim(); if(!text) return;
-      await supabase.from('messages').insert({ groupbuy_id: state.currentGroupId, user_id: user.id, content: text });
-      $('#chatInput').value='';
+    async function loadNotifications(){
+      const { data: { user } } = await supabase.auth.getUser();
+      if(!user) return;
+      const { data } = await supabase.from("notifications").select("*").eq("user_id", user.id).order("created_at", {ascending:false});
+      state.notifications = data||[];
     }
 
-    // ---------- History ----------
-    async function refreshHistory() {
-      const { data: { user } } = await supabase.auth.getUser(); if(!user) { $('#histGrid').innerHTML='請先登入'; return; }
-      const { data } = await supabase.rpc('my_request_history');
-      $('#histGrid').innerHTML = (data||[]).map(r => `
+    // Auth
+    async function refreshAuthUI(){
+      const { data: { session } } = await supabase.auth.getSession();
+      $("#status").textContent = session?.user ? `已登入：${session.user.email||session.user.phone}` : "未登入";
+    }
+    await refreshAuthUI();
+    supabase.auth.onAuthStateChange((_evt, session)=>$("#status").textContent = session?.user ? `已登入：${session.user.email||session.user.phone}` : "未登入");
+
+    $("#signup").onclick = async () => {
+      try{
+        const email = $("#authEmail").value.trim(); const password = $("#authPass").value;
+        const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
+        if(error) throw error;
+        $("#authMsg").textContent = "註冊成功，請查收驗證信（若已關閉驗證則可直接登入）。";
+      }catch(e){ $("#authMsg").textContent = e.message || "註冊失敗"; }
+    };
+    $("#login").onclick = async () => {
+      try{
+        const email = $("#authEmail").value.trim(); const password = $("#authPass").value;
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if(error) throw error;
+        $("#authMsg").textContent = "登入成功";
+        await loadList(); renderList(); await loadNotifications(); renderNotifications();
+      }catch(e){ $("#authMsg").textContent = e.message || "登入失敗"; }
+    };
+    $("#logout").onclick = async () => { await supabase.auth.signOut(); $("#authMsg").textContent = "已登出"; state.notifications=[]; renderNotifications(); };
+    $("#reset").onclick = async () => {
+      try{
+        const email = $("#authEmail").value.trim();
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/reset" });
+        if(error) throw error;
+        $("#authMsg").textContent = "已寄送重設密碼連結至 Email。";
+      }catch(e){ $("#authMsg").textContent = e.message || "寄送失敗"; }
+    };
+
+    // Browser notifications
+    $("#enablePush").onclick = async () => {
+      try { const perm = await Notification.requestPermission();
+        if (perm !== "granted") return $("#notifyMsg").textContent = "已拒絕或尚未允許通知。";
+        new Notification("通知已啟用", { body: "您將會在瀏覽器中收到提醒。" });
+        $("#notifyMsg").textContent = "瀏覽器通知已啟用。";
+      } catch(e){ $("#notifyMsg").textContent = e.message || "通知權限失敗"; }
+    };
+    $("#testPush").onclick = () => { try{ new Notification("測試通知", { body:"這是一則測試訊息。" }); }catch{} };
+
+    // Data: list / render
+    async function loadList(){
+      const { data, error } = await supabase
+        .from("groupbuys")
+        .select("*, items:groupbuy_items(*, participants:participants(*))")
+        .order("created_at", {ascending:false})
+        .limit(50);
+      if (error){ console.warn(error.message); state.list=[]; return; }
+      state.list = data||[];
+    }
+    function renderList(){
+      const grid = $("#grid"); const q = ($("#search").value||"").toLowerCase();
+      const items = (state.list||[]).filter(gb => {
+        return !q || (gb.items||[]).some(it => String(it.product_id||"").toLowerCase().includes(q));
+      });
+      grid.innerHTML = items.map(gb=>{
+        const it = (gb.items||[])[0] || {};
+        const p = pct(it.current_quantity, it.total_quantity);
+        return `
         <div class="card">
-          <div class="text-sm text-gray-600">類型：${r.role}</div>
-          <div>團購ID：${r.groupbuy_id}</div>
-          <div class="text-sm text-gray-500">狀態：${r.status} · 建立於：${new Date(r.created_at).toLocaleString()}</div>
-          <button class="underline mt-2" onclick="openDetail('${r.groupbuy_id}')">查看</button>
-        </div>
-      `).join('') || '<div class="text-gray-500">—</div>';
+          <div class="text-sm text-gray-600">主辦人：${gb.host_name||"—"}</div>
+          <div class="text-xs text-gray-600 mt-1">進度：${it.current_quantity||0} / ${it.total_quantity||0}</div>
+          <div class="w-full h-2 bg-gray-100 rounded overflow-hidden mt-1">
+            <div class="h-2 bg-indigo-500" style="width:${p}%"></div>
+          </div>
+          <div class="flex justify-between items-center mt-3">
+            <button class="underline" onclick="openDetail('${gb.id}')">詳情</button>
+            <span class="text-xs px-2 py-1 rounded bg-gray-100">${gb.status||"open"}</span>
+          </div>
+        </div>`;
+      }).join("") || '<div class="text-gray-500 p-4">—</div>';
     }
+    $("#search").addEventListener("input", renderList);
 
-    // Initial load
-    refreshList();
+    // Create group
+    $("#createBtn").onclick = async () => {
+      const item = {
+        product_id: $("#productId").value.trim(),
+        host_quantity: Math.max(1, parseInt($("#hostQty").value||"1",10)),
+        total_quantity: Math.max(1, parseInt($("#totalQty").value||"1",10)),
+        min_order: Math.max(1, parseInt($("#minOrder").value||"1",10)),
+      };
+      const notes = $("#notes").value.trim();
+      const { data: { user } } = await supabase.auth.getUser();
+      if(!user) return $("#createMsg").textContent = "請先登入";
+      const { data: gb, error: e1 } = await supabase.from("groupbuys").insert({ host_user:user.id, host_name:user.email, notes }).select("*").single();
+      if(e1) return $("#createMsg").textContent = e1.message;
+      await supabase.from("groupbuy_items").insert({
+        groupbuy_id: gb.id, product_id: item.product_id,
+        host_quantity: item.host_quantity, total_quantity: item.total_quantity,
+        current_quantity: item.host_quantity, min_order: item.min_order
+      });
+      const { data: gbi } = await supabase.from("groupbuy_items").select("id").eq("groupbuy_id", gb.id).order("created_at", {ascending:false}).limit(1).single();
+      await supabase.from("participants").insert({ groupbuy_item_id:gbi.id, user_id:user.id, quantity:item.host_quantity, is_host:true });
+      $("#createMsg").textContent = "已建立";
+      await loadList(); renderList(); show("list");
+    };
+
+    // Detail
+    window.openDetail = async (id) => {
+      state.currentId = id;
+      const { data, error } = await supabase
+        .from("groupbuys")
+        .select("*, items:groupbuy_items(*, participants:participants(*))")
+        .eq("id", id).single();
+      if(error) return;
+      const gb = data;
+      const it = (gb.items||[])[0] || {};
+      const canChat = fulfilled(gb);
+      $("#detailWrap").innerHTML = `
+        <div class="grid gap-6 md:grid-cols-2">
+          <div class="rounded-2xl border border-gray-200 h-64 md:h-96 bg-gray-50"></div>
+          <div>
+            <h1 class="text-2xl font-bold mb-1">團購詳情</h1>
+            <p class="text-gray-600">${gb.notes||"—"}</p>
+            <div class="text-sm text-gray-600 mt-2">MOQ: <strong>${it.min_order??5}</strong> · 已加入: <strong>${it.current_quantity??0}</strong> / <strong>${it.total_quantity??0}</strong></div>
+            <div class="flex gap-2 items-center mt-3">
+              <input id="joinQty" class="input w-24" type="number" min="1" value="1">
+              <button class="btn" onclick="joinGroup('${gb.id}')">參加</button>
+              <button class="rounded-xl border px-3 py-2" data-optout-id="${gb.id}">主辦人退出</button>
+            </div>
+            <div id="detailMsg" class="text-sm text-blue-700 mt-2"></div>
+          </div>
+        </div>
+        <div class="card mt-4">
+          <div class="font-medium mb-2">在此請求中再添加產品</div>
+          <div class="grid grid-cols-3 gap-2">
+            <input id="addProductId" class="input" placeholder="商品代碼 (P001)">
+            <input id="addHostQty" class="input" type="number" min="1" value="1" placeholder="主辦人數量">
+            <input id="addTotalQty" class="input" type="number" min="1" value="10" placeholder="總數量">
+          </div>
+          <button class="btn mt-2" onclick="addItem('${gb.id}')">新增</button>
+        </div>
+        <div class="card mt-4">
+          <div class="font-medium">群聊</div>
+          ${canChat ? '<div class="text-sm text-gray-600">（此處可接入即時聊天服務。）</div>' : '<div class="text-sm text-gray-600">只有全部數量滿足後才能聊天。</div>'}
+        </div>
+      `;
+      show("detail");
+    };
+
+    window.joinGroup = async (groupId) => {
+      const qty = Math.max(1, parseInt($("#joinQty").value||"1",10));
+      const { data:item, error:ierr } = await supabase
+        .from("groupbuy_items").select("id,total_quantity,current_quantity")
+        .eq("groupbuy_id", groupId).order("created_at").limit(1).single();
+      if (ierr) return $("#detailMsg").textContent = "找不到團購";
+      if (item.current_quantity + qty > item.total_quantity) return $("#detailMsg").textContent = "超出剩餘數量";
+      const { data: { user } } = await supabase.auth.getUser(); if(!user) return $("#detailMsg").textContent="請先登入";
+      await supabase.from("groupbuy_items").update({ current_quantity: item.current_quantity + qty }).eq("id", item.id);
+      await supabase.from("participants").insert({ groupbuy_item_id:item.id, user_id:user.id, quantity:qty, is_host:false });
+      $("#detailMsg").textContent = "加入成功"; await openDetail(groupId); await loadList(); renderList();
+    };
+
+    window.addItem = async (groupId) => {
+      const product_id = $("#addProductId").value.trim();
+      const host_quantity = Math.max(1, parseInt($("#addHostQty").value||"1",10));
+      const total_quantity = Math.max(1, parseInt($("#addTotalQty").value||"1",10));
+      const { data: { user } } = await supabase.auth.getUser(); if(!user) return $("#detailMsg").textContent = "請先登入";
+      const { data: group } = await supabase.from("groupbuys").select("host_user").eq("id", groupId).single();
+      if(!group || group.host_user !== user.id) return $("#detailMsg").textContent = "只有主辦人可以添加產品";
+      const { error } = await supabase.from("groupbuy_items").insert({
+        groupbuy_id:groupId, product_id, host_quantity, total_quantity, current_quantity:host_quantity, min_order:5
+      });
+      if(error) return $("#detailMsg").textContent = error.message;
+      $("#detailMsg").textContent = "已添加商品"; await openDetail(groupId);
+    };
+
+    // Host opt-out → void
+    document.addEventListener("click", async (e)=>{
+      const btn = e.target.closest("[data-optout-id]"); if(!btn) return;
+      const id = btn.getAttribute("data-optout-id");
+      const original = btn.textContent; btn.disabled = true; btn.textContent = "作廢中…";
+      try{
+        const { data: { user } } = await supabase.auth.getUser(); if(!user) throw new Error("請先登入");
+        const { data: group } = await supabase.from("groupbuys").select("host_user").eq("id", id).single();
+        if(!group || group.host_user !== user.id) throw new Error("只有主辦人可以作廢");
+        await supabase.from("groupbuys").update({status:"void"}).eq("id", id);
+        await supabase.from("groupbuy_items").update({status:"void"}).eq("groupbuy_id", id);
+        alert("主辦人已退出，團購已作廢。");
+        await loadList(); renderList(); if(state.currentId===id) await openDetail(id);
+      }catch(err){ alert(err.message||"失敗"); } finally { btn.disabled=false; btn.textContent=original; }
+    });
+
+    // Init
+    await loadList(); renderList();
+    window.show = show; // for header links
   </script>
 </body>
 </html>
