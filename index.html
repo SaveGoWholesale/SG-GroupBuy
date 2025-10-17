@@ -1,12 +1,4 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Converted File</title>
-</head>
-<body>
-<!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
@@ -726,7 +718,7 @@
         };
         
         let currentChatRequestId = null;
-        let currentLanguage = 'zh';
+        let currentLanguage = 'en';
         let selectedProducts = []; // Array to store products being added to the request
         let currentSelectedProduct = null; // Currently selected product for adding
         
@@ -2812,419 +2804,113 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98dc100c87a7465c',t:'MTc2MDMyOTQxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-</html>
-
-
-<!-- Supabase integration (minimal loader) -->
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98dc100c87a7465c',t:'MTc2MDMyOTQxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+<!-- Supabase bootstrap (no UI changes) -->
 <script type="module">
-
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = 'https://ucioqquosptqyjmswnhl.supabase.co'
-const supabaseKey = process.env.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjaW9xcXVvc3B0cXlqbXN3bmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2NTE0ODUsImV4cCI6MjA3NjIyNzQ4NX0.w3usZUiIeCSaIFQL5x7U1rs_0mq-a5lqnYvhVEwhy-U
-const supabase = createClient(supabaseUrl, supabaseKey)
-
-  async function currentUser(){ const { data:{ user } } = await supabase.auth.getUser(); return user; }
-
-  async function list() {
-    const { data, error } = await supabase
-      .from('groupbuys')
-      .select('*, items:groupbuy_items(*, participants:participants(*))')
-      .order('created_at', { ascending:false }).limit(50);
-    if (error) { console.warn(error.message); return []; }
-    return (data||[]).map(gb => ({
-      id: gb.id, hostName: gb.host_name || '—',
-      items: (gb.items||[]).map(it => ({
-        productId: it.product_id, hostQuantity: it.host_quantity, totalQuantity: it.total_quantity,
-        currentQuantity: it.current_quantity, status: it.status || 'open',
-        participants: (it.participants||[]).map(p => ({ name: p.is_host ? 'Host' : 'Member', quantity: p.quantity, isHost: !!p.is_host }))
-      })),
-      notes: gb.notes || '', status: gb.status || 'open',
-      createdAt: gb.created_at ? new Date(gb.created_at) : new Date(), chatEnabled: true
-    }));
-  }
-
-  async function optOut(id){
-    const u = await currentUser(); if(!u) return alert('請先登入');
-    const { data: g } = await supabase.from('groupbuys').select('host_user').eq('id', id).single();
-    if (!g || g.host_user !== u.id) return alert('只有主辦人可以作廢');
-    await supabase.from('groupbuys').update({ status:'void' }).eq('id', id);
-    await supabase.from('groupbuy_items').update({ status:'void' }).eq('groupbuy_id', id);
-    alert('主辦人已退出，團購已作廢。');
-  }
-
-  window.SaveGoSupabase = { supabase, list, optOut, currentUser };
-
-  document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const data = await list();
-      if (Array.isArray(data) && data.length) {
-        window.groupBuyRequests = data;
-        if (typeof window.renderRequests === 'function') window.renderRequests();
-      }
-    } catch (e) {}
-  });
-
-  document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('[data-optout-id]');
-    if (!btn) return;
-    const id = btn.getAttribute('data-optout-id');
-    const original = btn.textContent;
-    btn.disabled = true; btn.textContent = '作廢中…';
-    try { await optOut(id); if (typeof window.renderRequests==='function') window.renderRequests(); }
-    catch (err) { alert(err?.message || '失敗'); }
-    finally { btn.disabled = false; btn.textContent = original; }
-  });
-</script>
-
-<!-- Supabase + Auth wiring (auto-injected) -->
-<script type="module">
-  // Load supabase-js v2 from CDN
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-  // ====== CONFIG ======
   const SUPABASE_URL = "https://bwlqwrlsibmqttndymzu.supabase.co";
-  const SUPABASE_ANON_KEY = "eeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3bHF3cmxzaWJtcXR0bmR5bXp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDA0MzcsImV4cCI6MjA3NjA3NjQzN30.QQ8Lncmyl_VfP4a_hc9JP-W9YdlcRl21-8N4LTi2WDM";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3bHF3cmxzaWJtcXR0bmR5bXp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDA0MzcsImV4cCI6MjA3NjA3NjQzN30.QQ8Lncmyl_VfP4a_hc9JP-W9YdlcRl21-8N4LTi2WDM";
+
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
-    }
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
-  window.supabase = supabase; // for debugging
+  window.supabase = supabase;
 
-  // ====== Helpers ======
-  async function requestBrowserPermission() {
-    try {
-      if ('Notification' in window && Notification.permission === 'default') {
-        await Notification.requestPermission();
-      }
-    } catch (e) {
-      console.warn('Notification permission error', e);
-    }
-  }
-  requestBrowserPermission();
-
-  function toast(msg) {
-    try {
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('SaveGo', { body: msg });
-        return;
-      }
-    } catch(e){}
-    // Fallback in-app badge + dropdown
-    try {
-      const badge = document.getElementById('notification-badge');
-      const list = document.getElementById('notifications-list');
-      if (badge && list) {
-        const item = document.createElement('div');
-        item.className = 'p-3 border-b text-sm';
-        item.textContent = msg;
-        list.prepend(item);
-        const count = parseInt(badge.textContent || '0', 10) + 1;
-        badge.textContent = String(count);
-        badge.classList.remove('hidden');
-      }
-    } catch(e){}
+  function cloneReplace(id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const clone = el.cloneNode(true);
+    el.parentNode.replaceChild(clone, el);
+    return clone;
   }
 
-  // ====== AUTH UI HOOKUP ======
-  const loginForm = document.getElementById('login-form');
-  const signupForm = document.getElementById('signup-form');
-  const changePwForm = document.getElementById('change-password-form');
-
-  // Email/password login
-  if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
+  // Signup
+  (function() {
+    const form = cloneReplace("signup-form") || document.getElementById("signup-form");
+    if (!form) return;
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const identifier = document.getElementById('login-identifier').value.trim();
-      const password = document.getElementById('login-password').value;
-
-      // If looks like phone (starts with + or only digits), attempt SMS OTP; else email/password
-      const isPhone = /^\+?\d{7,}$/.test(identifier);
+      const name = document.getElementById("signup-name")?.value?.trim();
+      const email = document.getElementById("signup-email")?.value?.trim();
+      const password = document.getElementById("signup-password")?.value;
       try {
-        if (isPhone) {
-          // Send OTP by SMS (requires phone auth enabled in Supabase Auth > Providers)
-          const { data, error } = await supabase.auth.signInWithOtp({
-            phone: identifier,
-            options: { channel: 'sms' }
-          });
-          if (error) throw error;
-          alert('SMS code sent. Enter the code in the popup.');
-          const code = prompt('Enter the 6-digit code you received by SMS:');
-          if (!code) throw new Error('No code entered');
-          const verify = await supabase.auth.verifyOtp({
-            phone: identifier,
-            token: code,
-            type: 'sms'
-          });
-          if (verify.error) throw verify.error;
-        } else {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: identifier,
-            password
-          });
-          if (error) throw error;
-        }
-        // close modal if present
-        const close = document.querySelector('#login-modal button[onclick="closeLoginModal()"]');
-        if (close) close.click();
-        toast('Logged in successfully 👋');
-        await refreshFromSession();
-      } catch (err) {
-        alert('Login failed: ' + (err?.message || err));
-      }
-    });
-  }
-
-  // Sign up (email+password + optional phone)
-  if (signupForm) {
-    signupForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const name = document.getElementById('signup-name').value.trim();
-      const email = document.getElementById('signup-email').value.trim();
-      const phone = document.getElementById('signup-phone').value.trim();
-      const password = document.getElementById('signup-password').value;
-
-      try {
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email, password,
-          options: {
-            data: { full_name: name, phone },
-            phone
-          }
+          options: { data: { full_name: name }, emailRedirectTo: window.location.origin }
         });
         if (error) throw error;
-
-        // Optionally store a profile row (requires 'profiles' table with RLS)
-        await ensureProfileRow();
-
-        const close = document.querySelector('#signup-modal button[onclick="closeSignupModal()"]');
-        if (close) close.click();
-        toast('Account created! Check your email to confirm.');
-        await refreshFromSession();
+        alert("Account created. Check your email to confirm.");
+        const m = document.getElementById('signup-modal'); if (m) m.classList.add('hidden');
       } catch (err) {
-        alert('Signup failed: ' + (err?.message || err));
+        alert("Signup failed: " + (err?.message || err));
       }
     });
-  }
-
-  // Forgot Password (email)
-  // Add a small link under login button if missing
-  (function attachForgotPassword() {
-    try {
-      if (!document.getElementById('forgot-password-link')) {
-        const loginBtn = document.getElementById('login-submit-btn');
-        if (loginBtn) {
-          const a = document.createElement('button');
-          a.type = 'button';
-          a.id = 'forgot-password-link';
-          a.className = 'w-full mt-2 text-sm text-indigo-600 hover:text-indigo-800';
-          a.textContent = 'Forgot password?';
-          loginBtn.insertAdjacentElement('afterend', a);
-          a.addEventListener('click', async () => {
-            const email = prompt('Enter your email to reset password:');
-            if (!email) return;
-            try {
-              const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin
-              });
-              if (error) throw error;
-              alert('Password reset email sent (check spam too).');
-            } catch (err) {
-              alert('Reset failed: ' + (err?.message || err));
-            }
-          });
-        }
-      }
-    } catch(e) {}
   })();
 
-  // Logout button hookup (uses existing logout() if present)
-  const logoutMenuBtn = document.getElementById('logout-menu-btn');
-  if (logoutMenuBtn) {
-    logoutMenuBtn.addEventListener('click', async (e) => {
+  // Login
+  (function() {
+    const form = cloneReplace("login-form") || document.getElementById("login-form");
+    if (!form) return;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-identifier")?.value?.trim();
+      const password = document.getElementById("login-password")?.value;
       try {
-        await supabase.auth.signOut();
-        if (typeof window.logout === 'function') window.logout();
-      } catch(e) {
-        console.warn('Sign out error', e);
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        if (typeof window.updateUserInterface === "function") window.updateUserInterface();
+        const m = document.getElementById('login-modal'); if (m) m.classList.add('hidden');
+        alert("Logged in.");
+      } catch (err) {
+        alert("Login failed: " + (err?.message || err));
       }
     });
-  }
+  })();
 
-  // ====== SESSION / PROFILE ======
-  async function refreshFromSession() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      // fallback to existing guest UI
-      if (typeof window.updateUserInterface === 'function') window.updateUserInterface();
-      return;
-    }
-    const user = session.user;
-    // Update header UI using existing DOM
-    try {
-      const userAvatar = document.getElementById('user-avatar');
-      const userNameDisplay = document.getElementById('user-name-display');
-      const loggedInMenu = document.getElementById('logged-in-menu');
-      const guestMenu = document.getElementById('guest-menu');
-      const profileName = document.getElementById('profile-name');
-      const profileEmail = document.getElementById('profile-email');
-      const profileAvatar = document.getElementById('profile-avatar');
-      const menuUserName = document.getElementById('menu-user-name');
-      const menuUserEmail = document.getElementById('menu-user-email');
+  // Logout button
+  (function() {
+    const btn = document.getElementById("logout-menu-btn");
+    if (!btn) return;
+    btn.addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      if (typeof window.updateUserInterface === "function") window.updateUserInterface();
+      alert("Logged out.");
+    });
+  })();
 
-      const fullName = user.user_metadata?.full_name || (user.email?.split('@')[0]) || 'User';
-      const avatarChar = (fullName || 'U').charAt(0).toUpperCase();
-
-      if (userAvatar) userAvatar.textContent = avatarChar;
-      if (userNameDisplay) {
-        userNameDisplay.textContent = fullName;
-        userNameDisplay.classList.remove('hidden');
-      }
-      if (loggedInMenu) loggedInMenu.classList.remove('hidden');
-      if (guestMenu) guestMenu.classList.add('hidden');
-      if (profileName) profileName.textContent = fullName;
-      if (profileEmail) profileEmail.textContent = user.email || (user.phone ?? '');
-      if (profileAvatar) profileAvatar.textContent = avatarChar;
-      if (menuUserName) menuUserName.textContent = fullName;
-      if (menuUserEmail) menuUserEmail.textContent = user.email || (user.phone ?? '');
-    } catch(e) {
-      console.warn('UI update error', e);
-    }
-
-    // Load data from DB
-    await loadGroupBuysFromDB();
-  }
-
-  // Listen for auth changes
-  supabase.auth.onAuthStateChange((_event, _session) => {
-    refreshFromSession();
-  });
-
-  // Kick off on first load
-  await refreshFromSession();
-
-  // ====== DATA (EXAMPLE SCHEMA) ======
-  // Expected tables (you can create them in Supabase SQL editor):
-  // 1) group_buy_requests: id uuid pk default uuid_generate_v4(), host_name text, notes text, created_at timestamptz
-  // 2) group_buy_items: id uuid pk, request_id uuid fk -> group_buy_requests.id, product_id text, host_quantity numeric, total_quantity numeric, current_quantity numeric, status text
-  // RLS: enable with policies allowing read to anon, insert/update for authenticated users as needed.
-
-  async function ensureProfileRow() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      // If you have a 'profiles' table, upsert basic profile
-      const res = await fetch('/__probe_profiles', { method: 'HEAD' }).catch(()=>null);
-      // No-op: we can't probe DB from client; leave this as a placeholder.
-    } catch(e) {}
-  }
-
+  // Optional: load group buys from DB
   async function loadGroupBuysFromDB() {
     try {
-      // Try to read from DB; if tables don't exist, silently fall back to existing in-memory rendering
       const { data, error } = await supabase
-        .from('group_buy_requests')
-        .select('id, host_name, notes, created_at, group_buy_items(id, product_id, host_quantity, total_quantity, current_quantity, status)')
-        .order('created_at', { ascending: false })
+        .from("group_buy_requests")
+        .select("id, host_name, notes, created_at, group_buy_items(id, product_id, host_quantity, total_quantity, current_quantity, status)")
+        .order("created_at", { ascending: false })
         .limit(30);
       if (error) throw error;
-      if (!Array.isArray(data)) return;
-
-      // Map DB rows to the format expected by renderers in the current page
-      window.groupBuyRequests = data.map((row) => ({
+      window.groupBuyRequests = (data || []).map(row => ({
         id: row.id,
-        hostName: row.host_name || 'Unknown',
-        items: (row.group_buy_items || []).map(it => ({
+        hostName: row.host_name || "Unknown",
+        items: (row.group_buy_items || []).map(it => ({ 
           productId: it.product_id,
           hostQuantity: Number(it.host_quantity || 0),
           totalQuantity: Number(it.total_quantity || 0),
           currentQuantity: Number(it.current_quantity || 0),
-          participants: [], // You can create a participants table and join here
-          status: it.status || 'open'
+          participants: [],
+          status: it.status || "open"
         })),
-        notes: row.notes || '',
+        notes: row.notes || "",
         createdAt: row.created_at ? new Date(row.created_at) : new Date(),
         chatEnabled: true
       }));
-
-      if (typeof window.renderRequests === 'function') window.renderRequests();
-      if (typeof window.renderMyGroups === 'function') window.renderMyGroups();
+      if (typeof window.renderRequests === "function") window.renderRequests();
+      if (typeof window.renderMyGroups === "function") window.renderMyGroups();
     } catch (e) {
-      console.warn('DB not ready (falling back to local data):', e?.message || e);
-      // keep existing in-memory seed
+      console.warn("DB load failed:", e?.message || e);
     }
   }
-
-  // Hook into "Create Group Buy Request" submit if present
-  const createForm = document.getElementById('create-request-form');
-  if (createForm) {
-    createForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      try {
-        // Collect from the existing selectedProducts array and notes textarea
-        const notes = document.getElementById('request-notes')?.value || '';
-        const selected = Array.isArray(window.selectedProducts) ? window.selectedProducts.slice() : [];
-        if (!selected.length) throw new Error('Please add at least one product');
-
-        const user = (await supabase.auth.getUser()).data.user;
-        const host_name = user?.user_metadata?.full_name || user?.email || 'Host';
-
-        // Insert parent request
-        const { data: reqRows, error: reqErr } = await supabase
-          .from('group_buy_requests')
-          .insert({ host_name, notes })
-          .select()
-          .single();
-        if (reqErr) throw reqErr;
-
-        // Insert items
-        const itemsPayload = selected.map(p => ({
-          request_id: reqRows.id,
-          product_id: p.productId,
-          host_quantity: p.hostQuantity,
-          total_quantity: (window.productDatabase?.find(x=>x.id===p.productId)?.caseWeight) || p.hostQuantity,
-          current_quantity: p.hostQuantity,
-          status: 'open'
-        }));
-        const { error: itemsErr } = await supabase
-          .from('group_buy_items')
-          .insert(itemsPayload);
-        if (itemsErr) throw itemsErr;
-
-        // Reset UI & reload
-        window.selectedProducts = [];
-        document.getElementById('selected-products-list').innerHTML = '';
-        document.getElementById('create-request-btn').disabled = true;
-        document.getElementById('request-notes').value = '';
-        toast('Group buy created ✅');
-        await loadGroupBuysFromDB();
-      } catch (err) {
-        alert('Create failed: ' + (err?.message || err));
-      }
-    });
-  }
-
-  // ====== OPTIONAL: Real-time on changes (requires Realtime enabled on tables) ======
-  try {
-    supabase
-      .channel('public:group_buy_requests')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'group_buy_requests' }, payload => {
-        loadGroupBuysFromDB();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'group_buy_items' }, payload => {
-        loadGroupBuysFromDB();
-      })
-      .subscribe();
-  } catch (e) {
-    console.warn('Realtime subscribe failed', e);
-  }
-
-  // Expose helpers for debugging in console
-  window.__savego = { supabase, loadGroupBuysFromDB };
+  window.addEventListener("load", loadGroupBuysFromDB);
+  supabase.auth.onAuthStateChange(() => loadGroupBuysFromDB());
 </script>
 </body>
 </html>
