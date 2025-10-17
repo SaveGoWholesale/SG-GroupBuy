@@ -2878,6 +2878,31 @@
       alert("Logged out.");
     });
   })();
+<script type="module">
+  // after you create the client:
+  // const supabase = createClient(...);
+
+  async function applySessionUI(session) {
+    // ← put your existing “logged-in UI” updates here
+    // e.g. show avatar/name, hide guest menu, etc.
+    if (typeof window.updateUserInterface === 'function') window.updateUserInterface();
+
+    // also reload data that requires auth
+    if (window.__savego?.loadGroupBuysFromDB) await window.__savego.loadGroupBuysFromDB();
+  }
+
+  // 1) On first load, restore session and update UI
+  (async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) console.warn('getSession error:', error);
+    if (session) await applySessionUI(session);
+  })();
+
+  // 2) Keep UI in sync for any auth changes (login, logout, email-link redirect)
+  supabase.auth.onAuthStateChange(async (_event, session) => {
+    await applySessionUI(session);
+  });
+</script>
 
   // Optional: load group buys from DB
   async function loadGroupBuysFromDB() {
