@@ -2821,8 +2821,8 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://bwlqwrlsibmqttndymzu.supabase.co'
-const supabaseKey = process.env.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3bHF3cmxzaWJtcXR0bmR5bXp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDA0MzcsImV4cCI6MjA3NjA3NjQzN30.QQ8Lncmyl_VfP4a_hc9JP-W9YdlcRl21-8N4LTi2WDM
+const supabaseUrl = 'https://ucioqquosptqyjmswnhl.supabase.co'
+const supabaseKey = process.env.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjaW9xcXVvc3B0cXlqbXN3bmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2NTE0ODUsImV4cCI6MjA3NjIyNzQ4NX0.w3usZUiIeCSaIFQL5x7U1rs_0mq-a5lqnYvhVEwhy-U
 const supabase = createClient(supabaseUrl, supabaseKey)
 
   async function currentUser(){ const { data:{ user } } = await supabase.auth.getUser(); return user; }
