@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Converted File</title>
+</head>
+<body>
+<!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
@@ -718,7 +726,7 @@
         };
         
         let currentChatRequestId = null;
-        let currentLanguage = 'en';
+        let currentLanguage = 'zh';
         let selectedProducts = []; // Array to store products being added to the request
         let currentSelectedProduct = null; // Currently selected product for adding
         
@@ -2805,137 +2813,125 @@
         });
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98dc100c87a7465c',t:'MTc2MDMyOTQxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
-<!-- Supabase bootstrap (no UI changes) -->
 <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-
-  const SUPABASE_URL = "https://bwlqwrlsibmqttndymzu.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3bHF3cmxzaWJtcXR0bmR5bXp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDA0MzcsImV4cCI6MjA3NjA3NjQzN30.QQ8Lncmyl_VfP4a_hc9JP-W9YdlcRl21-8N4LTi2WDM";
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-  });
-  window.supabase = supabase;
-
-  function cloneReplace(id) {
-    const el = document.getElementById(id);
-    if (!el) return null;
-    const clone = el.cloneNode(true);
-    el.parentNode.replaceChild(clone, el);
-    return clone;
-  }
-
-  // Signup
-  (function() {
-    const form = cloneReplace("signup-form") || document.getElementById("signup-form");
-    if (!form) return;
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = document.getElementById("signup-name")?.value?.trim();
-      const email = document.getElementById("signup-email")?.value?.trim();
-      const password = document.getElementById("signup-password")?.value;
-      try {
-        const { error } = await supabase.auth.signUp({
-          email, password,
-          options: { data: { full_name: name }, emailRedirectTo: window.location.origin }
-        });
-        if (error) throw error;
-        alert("Account created. Check your email to confirm.");
-        const m = document.getElementById('signup-modal'); if (m) m.classList.add('hidden');
-      } catch (err) {
-        alert("Signup failed: " + (err?.message || err));
-      }
-    });
-  })();
-
-  // Login
-  (function() {
-    const form = cloneReplace("login-form") || document.getElementById("login-form");
-    if (!form) return;
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("login-identifier")?.value?.trim();
-      const password = document.getElementById("login-password")?.value;
-      try {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        if (typeof window.updateUserInterface === "function") window.updateUserInterface();
-        const m = document.getElementById('login-modal'); if (m) m.classList.add('hidden');
-        alert("Logged in.");
-      } catch (err) {
-        alert("Login failed: " + (err?.message || err));
-      }
-    });
-  })();
-
-  // Logout button
-  (function() {
-    const btn = document.getElementById("logout-menu-btn");
-    if (!btn) return;
-    btn.addEventListener("click", async () => {
-      await supabase.auth.signOut();
-      if (typeof window.updateUserInterface === "function") window.updateUserInterface();
-      alert("Logged out.");
-    });
-  })();
-<script type="module">
-  // after you create the client:
-  // const supabase = createClient(...);
-
   async function applySessionUI(session) {
-    // ← put your existing “logged-in UI” updates here
-    // e.g. show avatar/name, hide guest menu, etc.
     if (typeof window.updateUserInterface === 'function') window.updateUserInterface();
-
-    // also reload data that requires auth
     if (window.__savego?.loadGroupBuysFromDB) await window.__savego.loadGroupBuysFromDB();
   }
 
-  // 1) On first load, restore session and update UI
   (async () => {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) console.warn('getSession error:', error);
-    if (session) await applySessionUI(session);
+    try {
+      const { data: { session }, error } = await window.supabase.auth.getSession();
+      if (error) console.warn('getSession error:', error);
+      if (session) await applySessionUI(session);
+    } catch (e) {
+      console.warn('Session restore failed:', e?.message || e);
+    }
   })();
 
-  // 2) Keep UI in sync for any auth changes (login, logout, email-link redirect)
-  supabase.auth.onAuthStateChange(async (_event, session) => {
+  window.supabase.auth.onAuthStateChange(async (_event, session) => {
     await applySessionUI(session);
   });
-</script>
 
-  // Optional: load group buys from DB
-  async function loadGroupBuysFromDB() {
-    try {
-      const { data, error } = await supabase
-        .from("group_buy_requests")
-        .select("id, host_name, notes, created_at, group_buy_items(id, product_id, host_quantity, total_quantity, current_quantity, status)")
-        .order("created_at", { ascending: false })
-        .limit(30);
-      if (error) throw error;
-      window.groupBuyRequests = (data || []).map(row => ({
-        id: row.id,
-        hostName: row.host_name || "Unknown",
-        items: (row.group_buy_items || []).map(it => ({ 
-          productId: it.product_id,
-          hostQuantity: Number(it.host_quantity || 0),
-          totalQuantity: Number(it.total_quantity || 0),
-          currentQuantity: Number(it.current_quantity || 0),
-          participants: [],
-          status: it.status || "open"
-        })),
-        notes: row.notes || "",
-        createdAt: row.created_at ? new Date(row.created_at) : new Date(),
-        chatEnabled: true
-      }));
-      if (typeof window.renderRequests === "function") window.renderRequests();
-      if (typeof window.renderMyGroups === "function") window.renderMyGroups();
-    } catch (e) {
-      console.warn("DB load failed:", e?.message || e);
+  if (!window.__savego?.loadGroupBuysFromDB) {
+    async function loadGroupBuysFromDB() {
+      try {
+        const { data, error } = await window.supabase
+          .from("group_buy_requests")
+          .select("id, host_name, notes, created_at, group_buy_items(id, product_id, host_quantity, total_quantity, current_quantity, status)")
+          .order("created_at", { ascending: false })
+          .limit(30);
+        if (error) throw error;
+        window.groupBuyRequests = (data || []).map(row => ({
+          id: row.id,
+          hostName: row.host_name || "Unknown",
+          items: (row.group_buy_items || []).map(it => ({
+            productId: it.product_id,
+            hostQuantity: Number(it.host_quantity || 0),
+            totalQuantity: Number(it.total_quantity || 0),
+            currentQuantity: Number(it.current_quantity || 0),
+            participants: [],
+            status: it.status || "open"
+          })),
+          notes: row.notes || "",
+          createdAt: row.created_at ? new Date(row.created_at) : new Date(),
+          chatEnabled: true
+        }));
+        if (typeof window.renderRequests === "function") window.renderRequests();
+        if (typeof window.renderMyGroups === "function") window.renderMyGroups();
+      } catch (e) {
+        console.warn("DB load failed:", e?.message || e);
+      }
     }
+    window.__savego = Object.assign({}, window.__savego || {}, { loadGroupBuysFromDB });
+    window.addEventListener("load", loadGroupBuysFromDB);
+    window.supabase.auth.onAuthStateChange(() => loadGroupBuysFromDB());
+  } else {
+    window.addEventListener("load", window.__savego.loadGroupBuysFromDB);
+    window.supabase.auth.onAuthStateChange(() => window.__savego.loadGroupBuysFromDB());
   }
-  window.addEventListener("load", loadGroupBuysFromDB);
-  supabase.auth.onAuthStateChange(() => loadGroupBuysFromDB());
+</script>
+</body>
+</html>
+
+
+<!-- Supabase integration (minimal loader) -->
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+  const supabase = createClient("https://dhbexxcngocoesowiusb.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRoYmV4eGNuZ29jb2Vzb3dpdXNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyMTAzNTAsImV4cCI6MjA3NTc4NjM1MH0.RTGWoNU4hSl2_qVgLZR3_0NBJnXQ_9dD3bwkP2mcYK0");
+
+  async function currentUser(){ const { data:{ user } } = await supabase.auth.getUser(); return user; }
+
+  async function list() {
+    const { data, error } = await supabase
+      .from('groupbuys')
+      .select('*, items:groupbuy_items(*, participants:participants(*))')
+      .order('created_at', { ascending:false }).limit(50);
+    if (error) { console.warn(error.message); return []; }
+    return (data||[]).map(gb => ({
+      id: gb.id, hostName: gb.host_name || '—',
+      items: (gb.items||[]).map(it => ({
+        productId: it.product_id, hostQuantity: it.host_quantity, totalQuantity: it.total_quantity,
+        currentQuantity: it.current_quantity, status: it.status || 'open',
+        participants: (it.participants||[]).map(p => ({ name: p.is_host ? 'Host' : 'Member', quantity: p.quantity, isHost: !!p.is_host }))
+      })),
+      notes: gb.notes || '', status: gb.status || 'open',
+      createdAt: gb.created_at ? new Date(gb.created_at) : new Date(), chatEnabled: true
+    }));
+  }
+
+  async function optOut(id){
+    const u = await currentUser(); if(!u) return alert('請先登入');
+    const { data: g } = await supabase.from('groupbuys').select('host_user').eq('id', id).single();
+    if (!g || g.host_user !== u.id) return alert('只有主辦人可以作廢');
+    await supabase.from('groupbuys').update({ status:'void' }).eq('id', id);
+    await supabase.from('groupbuy_items').update({ status:'void' }).eq('groupbuy_id', id);
+    alert('主辦人已退出，團購已作廢。');
+  }
+
+  window.SaveGoSupabase = { supabase, list, optOut, currentUser };
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const data = await list();
+      if (Array.isArray(data) && data.length) {
+        window.groupBuyRequests = data;
+        if (typeof window.renderRequests === 'function') window.renderRequests();
+      }
+    } catch (e) {}
+  });
+
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-optout-id]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-optout-id');
+    const original = btn.textContent;
+    btn.disabled = true; btn.textContent = '作廢中…';
+    try { await optOut(id); if (typeof window.renderRequests==='function') window.renderRequests(); }
+    catch (err) { alert(err?.message || '失敗'); }
+    finally { btn.disabled = false; btn.textContent = original; }
+  });
 </script>
 </body>
 </html>
