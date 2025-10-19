@@ -1,109 +1,195 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SaveGo Group Buy</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaveGo - Group Buying Platform (Supabase)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { box-sizing: border-box; }
+    @keyframes fadeIn { from {opacity: 0; transform: translateY(20px);} to {opacity: 1; transform: translateY(0);} }
+    .animate-fade-in { animation: fadeIn .6s ease-out; }
     .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .progress-bar { background: linear-gradient(90deg, #10b981, #059669); transition: width .35s ease; }
-    .search-dropdown { max-height: 300px; overflow-y: auto; box-shadow: 0 4px 10px rgba(0,0,0,.08); z-index: 50; }
-    .error { white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .card-hover { transition: all .3s ease; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,.1); }
+    .progress-bar { background: linear-gradient(90deg, #10b981, #059669); transition: width .4s ease; }
+    .search-dropdown { max-height: 300px; overflow-y:auto; box-shadow: 0 4px 10px rgba(0,0,0,.08); z-index:50; }
   </style>
 </head>
 <body class="h-full bg-gray-50">
+  <!-- Navigation -->
   <nav class="bg-white shadow-sm border-b sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center text-white">
-            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
+            <i data-lucide="shopping-bag" class="w-5 h-5 text-white"></i>
           </div>
-          <span class="text-xl font-bold">SaveGo</span>
+          <span class="text-xl font-bold text-gray-900">SaveGo</span>
         </div>
-        <div class="hidden md:flex items-center gap-8">
-          <button id="nav-browse" class="text-gray-700 hover:text-black" data-section="browse">Browse</button>
-          <button id="nav-create" class="text-gray-700 hover:text-black" data-section="create">Create</button>
-          <button id="nav-my" class="text-gray-700 hover:text-black" data-section="my-groups">My Groups</button>
+
+        <div class="hidden md:flex items-center space-x-8">
+          <button data-section="browse" class="text-gray-600 hover:text-gray-900 transition-colors">Browse Requests</button>
+          <button data-section="create" class="text-gray-600 hover:text-gray-900 transition-colors">Create Request</button>
+          <button data-section="my-groups" class="text-gray-600 hover:text-gray-900 transition-colors">My Groups</button>
         </div>
-        <div class="flex items-center gap-3">
-          <button id="login-btn" class="px-3 py-1 text-sm border rounded-lg">Log in</button>
-          <button id="signup-btn" class="px-3 py-1 text-sm border rounded-lg">Sign up</button>
-          <div id="user-pill" class="hidden items-center gap-2 px-2 py-1 rounded-lg bg-gray-100">
-            <div id="user-avatar" class="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm"></div>
-            <span id="user-name" class="text-sm font-medium"></span>
-            <button id="logout-btn" class="ml-2 text-xs text-red-600 hover:underline">Logout</button>
+
+        <div class="flex items-center space-x-4">
+          <div class="relative">
+            <button id="notif-btn" class="p-2 text-gray-600 hover:text-gray-900 transition-colors relative" type="button">
+              <i data-lucide="bell" class="w-5 h-5"></i>
+              <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 hidden items-center justify-center">0</span>
+            </button>
+            <div id="notifications-dropdown" class="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden">
+              <div class="p-4 border-b">
+                <h3 class="font-semibold text-gray-900">Notifications</h3>
+              </div>
+              <div id="notifications-list" class="max-h-64 overflow-y-auto">
+                <div class="p-4 text-center text-gray-500">No notifications</div>
+              </div>
+              <div class="p-3 border-t text-center">
+                <button id="clear-notif" class="text-sm text-gray-600 hover:text-gray-800" type="button">Clear All</button>
+              </div>
+            </div>
+          </div>
+          <div class="relative">
+            <button id="user-menu-toggle" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition-colors" type="button">
+              <div id="user-avatar" class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">G</div>
+              <span id="user-name-display" class="text-sm font-medium text-gray-700 hidden md:block">Guest</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-gray-500"></i>
+            </button>
+            <div id="user-menu" class="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden">
+              <div id="logged-in-menu" class="hidden">
+                <div class="p-3 border-b">
+                  <p class="font-medium text-gray-900" id="menu-user-name">User</p>
+                  <p class="text-sm text-gray-600" id="menu-user-email">user@email.com</p>
+                </div>
+                <button id="profile-menu-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" type="button">Profile Settings</button>
+                <button id="logout-menu-btn" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" type="button">Logout</button>
+              </div>
+              <div id="guest-menu">
+                <button id="login-menu-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" type="button">Login</button>
+                <button id="signup-menu-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" type="button">Create Account</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </nav>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <section id="browse" class="space-y-6">
-      <div class="flex flex-col sm:flex-row gap-3">
-        <input id="search-requests" placeholder="Search by product name, ID, or host..." class="flex-1 px-4 py-2 border rounded-lg" />
-        <select id="filter-status" class="px-3 py-2 border rounded-lg">
-          <option value="all">All Status</option>
-          <option value="open">Open</option>
-          <option value="almost-full">Almost Full</option>
-          <option value="completed">Completed</option>
-        </select>
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Browse Section -->
+    <div id="browse-section" class="section">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">Active Group Buy Requests</h1>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <div class="flex-1">
+            <input id="search-requests" placeholder="Search by product name, ID, or host..."
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+          </div>
+          <select id="filter-status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            <option value="all">All Status</option>
+            <option value="open">Open</option>
+            <option value="almost-full">Almost Full</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
       </div>
       <div id="requests-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-    </section>
+    </div>
 
-    <section id="create" class="hidden">
-      <div class="max-w-2xl mx-auto bg-white rounded-xl shadow p-6">
-        <h2 class="text-2xl font-bold mb-4">Create Group Buy</h2>
-        <form id="create-form" class="space-y-5">
-          <div>
-            <label class="block text-sm font-medium mb-2">Product search</label>
-            <div class="relative">
-              <input id="product-search" placeholder="Search by product name or ID..." class="w-full px-4 py-2 border rounded-lg">
-              <div id="search-results" class="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg search-dropdown hidden"></div>
+    <!-- Create Request Section -->
+    <div id="create-section" class="section hidden">
+      <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Create Group Buy Request</h1>
+        <div class="bg-white rounded-xl shadow-lg p-8">
+          <form id="create-request-form">
+            <div class="mb-6">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Products</h3>
+                <span class="text-sm text-gray-600">Add multiple products to your group buy</span>
+              </div>
+
+              <div id="selected-products-list" class="space-y-4 mb-4"></div>
+
+              <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                <div class="text-center mb-4">
+                  <i data-lucide="plus-circle" class="w-8 h-8 text-gray-400 mx-auto mb-2"></i>
+                  <p class="text-gray-600">Add a product to your group buy</p>
+                </div>
+                <div class="relative mb-4">
+                  <input id="product-search" placeholder="Search by product name or ID..."
+                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                  <div id="search-results" class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg mt-1 search-dropdown hidden"></div>
+                </div>
+                <div id="add-product-form" class="hidden">
+                  <div id="selected-product-preview" class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg"></div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Your Required Quantity (lbs)</label>
+                      <input type="number" id="host-quantity" min="1" placeholder="e.g., 10"
+                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Order (lbs)</label>
+                      <input type="number" id="min-order-quantity" min="1" placeholder="e.g., 5" value="5"
+                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                  </div>
+                  <div id="quantity-feedback" class="mb-4 text-sm hidden"></div>
+                  <div class="flex space-x-3">
+                    <button type="button" id="add-product-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                      <i data-lucide="plus" class="w-4 h-4 inline mr-2"></i>
+                      Add Product
+                    </button>
+                    <button type="button" id="cancel-product-btn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-400 transition-colors">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div id="selected-product" class="hidden border rounded-lg p-4 bg-blue-50"></div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-medium mb-1">Your qty (lbs)</label>
-              <input id="host-qty" type="number" min="1" class="w-full px-3 py-2 border rounded-lg">
+
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Additional Notes (Optional)</label>
+              <textarea id="request-notes" rows="3" placeholder="Any special requirements, pickup location preferences, etc..."
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
             </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">Total case (lbs)</label>
-              <input id="total-qty" type="number" min="5" class="w-full px-3 py-2 border rounded-lg">
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">Min per person (lbs)</label>
-              <input id="min-order" type="number" min="5" value="5" class="w-full px-3 py-2 border rounded-lg">
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">Notes (optional)</label>
-            <textarea id="notes" rows="3" class="w-full px-3 py-2 border rounded-lg" placeholder="Pickup timing, location, etc."></textarea>
-          </div>
-          <button id="create-btn" class="w-full bg-indigo-600 text-white py-2 rounded-lg disabled:opacity-50">Create request</button>
-          <p id="create-hint" class="text-xs text-gray-500 text-center">Log in to create a request.</p>
-        </form>
+
+            <button type="submit" id="create-request-btn"
+                    class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    disabled>Create Group Buy Request</button>
+            <p id="create-help-text" class="text-sm text-gray-500 text-center mt-2">Add at least one product to create your request</p>
+          </form>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <section id="my-groups" class="hidden">
-      <h2 class="text-2xl font-bold mb-4">My Groups</h2>
+    <!-- My Groups Section -->
+    <div id="my-groups-section" class="section hidden">
+      <h1 class="text-3xl font-bold text-gray-900 mb-8">My Group Buys</h1>
       <div id="my-groups-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-    </section>
-  </main>
+    </div>
+  </div>
 
+  <!-- Request Detail Modal -->
+  <div id="request-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div id="modal-content" class="p-5"></div>
+    </div>
+  </div>
+
+  <!-- Auth Modal -->
   <dialog id="auth-modal" class="rounded-xl p-0 backdrop:bg-black/40">
     <form method="dialog" class="bg-white rounded-xl w-[420px] max-w-[95vw]">
       <div class="p-5 border-b flex items-center justify-between">
         <h3 id="auth-title" class="text-lg font-semibold">Log in</h3>
-        <button id="auth-close" class="text-gray-500" value="cancel"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button id="auth-close" class="text-gray-500" value="cancel" type="button"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <div class="p-5 space-y-3">
         <div>
@@ -115,7 +201,7 @@
           <input id="auth-password" type="password" required class="w-full px-3 py-2 border rounded-lg">
         </div>
         <p id="auth-error" class="text-sm text-red-600 hidden"></p>
-        <button id="auth-submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg"></button>
+        <button id="auth-submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg" type="button"></button>
         <div class="text-center">
           <button type="button" id="forgot-btn" class="text-sm text-indigo-600 hover:underline">Forgot password?</button>
         </div>
@@ -123,72 +209,75 @@
     </form>
   </dialog>
 
-  <dialog id="request-drawer" class="rounded-xl p-0 w-[760px] max-w-[96vw] backdrop:bg-black/40">
-    <div class="bg-white rounded-xl">
-      <div class="p-5 border-b flex items-center justify-between">
-        <div>
-          <h3 id="drawer-title" class="text-xl font-semibold">Group Buy</h3>
-          <p id="drawer-sub" class="text-sm text-gray-600"></p>
-        </div>
-        <button id="drawer-close" class="text-gray-600"><i data-lucide="x" class="w-6 h-6"></i></button>
-      </div>
-      <div id="drawer-body" class="p-5 space-y-5 max-h-[70vh] overflow-y-auto"></div>
-    </div>
-  </dialog>
-
   <template id="toast">
     <div class="fixed inset-x-0 top-3 mx-auto w-fit bg-black text-white text-sm px-4 py-2 rounded-lg shadow">Saved</div>
   </template>
 
   <script>
+    // ==== Supabase client ====
     const SUPABASE_URL = "https://bwlqwrlsibmqttndymzu.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3bHF3cmxzaWJtcXR0bmR5bXp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDA0MzcsImV4cCI6MjA3NjA3NjQzN30.QQ8Lncmyl_VfP4a_hc9JP-W9YdlcRl21-8N4LTi2WDM";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, storageKey: "savego-auth" } });
 
+    // ==== Helpers ====
     lucide.createIcons();
     const qs = (s) => document.querySelector(s);
     const qsa = (s) => Array.from(document.querySelectorAll(s));
+    function toast(t) { const el=qs("#toast").content.cloneNode(true).firstElementChild; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),2000); }
+    function showSection(id) { qsa(".section").forEach(s=>s.classList.add("hidden")); qs(`#${id}-section`).classList.remove("hidden"); if(id==="browse") refreshBrowse(); if(id==="my-groups") refreshMine(); }
 
-    function show(id) { qsa("main section").forEach(s => s.classList.add("hidden")); qs("#"+id).classList.remove("hidden"); }
-    function toast(t) { const tpl=qs("#toast").content.cloneNode(true); const el=tpl.firstElementChild; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),2000); }
-
+    // ==== Auth ====
     let currentUser = null;
     async function loadSession() {
       const { data: { user } } = await supabase.auth.getUser();
-      currentUser = user || null; renderAuth();
+      currentUser = user || null;
+      renderUserUI();
       if (currentUser) await ensureProfile(currentUser);
     }
     async function ensureProfile(user) {
       const { data: p } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
-      if (!p) {
-        await supabase.from("profiles").insert({ id: user.id, full_name: user.email?.split("@")[0] || "User", email: user.email || null });
+      if (!p) await supabase.from("profiles").insert({ id: user.id, email: user.email, full_name: user.email?.split("@")[0] || "User" });
+    }
+    function renderUserUI() {
+      const avatar=qs("#user-avatar"), name=qs("#user-name-display"), menu=qs("#user-menu"), logged=qs("#logged-in-menu"), guest=qs("#guest-menu");
+      if (currentUser) {
+        avatar.textContent = (currentUser.email||"U").charAt(0).toUpperCase();
+        name.textContent = currentUser.email||"User"; name.classList.remove("hidden");
+        logged.classList.remove("hidden"); guest.classList.add("hidden");
+        qs("#menu-user-name").textContent = currentUser.email?.split("@")[0] || "User";
+        qs("#menu-user-email").textContent = currentUser.email || "";
+      } else {
+        avatar.textContent = "G"; name.textContent = "Guest"; name.classList.add("hidden");
+        logged.classList.add("hidden"); guest.classList.remove("hidden");
       }
+      menu.classList.add("hidden");
     }
-    function renderAuth() {
-      const pill=qs("#user-pill"), loginBtn=qs("#login-btn"), signupBtn=qs("#signup-btn"), avatar=qs("#user-avatar"), name=qs("#user-name"), hint=qs("#create-hint");
-      if (currentUser) { pill.classList.remove("hidden"); loginBtn.classList.add("hidden"); signupBtn.classList.add("hidden"); avatar.textContent=(currentUser.email||"U").charAt(0).toUpperCase(); name.textContent=currentUser.email||"User"; if(hint) hint.textContent="You're logged in. Create a request."; }
-      else { pill.classList.add("hidden"); loginBtn.classList.remove("hidden"); signupBtn.classList.remove("hidden"); if(hint) hint.textContent="Log in to create a request."; }
-    }
-    async function doAuth(mode) {
-      const dlg=qs("#auth-modal"), title=qs("#auth-title"), submitBtn=qs("#auth-submit"), email=qs("#auth-email"), pwd=qs("#auth-password"), err=qs("#auth-error");
+    function openAuth(mode) {
+      const dlg=qs("#auth-modal"); const title=qs("#auth-title"); const submit=qs("#auth-submit"); const email=qs("#auth-email"); const pwd=qs("#auth-password"); const err=qs("#auth-error");
       title.textContent = mode==="login" ? "Log in" : "Create account";
-      submitBtn.textContent = mode==="login" ? "Log in" : "Sign up";
-      err.classList.add("hidden"); email.value=""; pwd.value=""; if (typeof dlg.showModal==="function") dlg.showModal();
-      submitBtn.onclick = async (e) => {
-        e.preventDefault();
+      submit.textContent = mode==="login" ? "Log in" : "Sign up";
+      err.classList.add("hidden"); email.value=""; pwd.value="";
+      submit.onclick = async () => {
         try {
           if (mode==="login") { const { error } = await supabase.auth.signInWithPassword({ email: email.value, password: pwd.value }); if (error) throw error; }
           else { const { error } = await supabase.auth.signUp({ email: email.value, password: pwd.value }); if (error) throw error; }
-          if (dlg.open) dlg.close(); await loadSession(); toast(mode==="login" ? "Logged in" : "Account created");
+          dlg.close(); await loadSession(); toast(mode==="login" ? "Logged in" : "Account created");
         } catch (ex) { err.textContent = ex.message; err.classList.remove("hidden"); }
       };
-      qs("#forgot-btn").onclick = async () => { err.classList.add("hidden"); try { const { error } = await supabase.auth.resetPasswordForEmail(email.value, { redirectTo: location.origin + "/" }); if (error) throw error; toast("Reset link sent"); } catch (ex) { err.textContent = ex.message; err.classList.remove("hidden"); } };
+      qs("#forgot-btn").onclick = async () => { try { const { error } = await supabase.auth.resetPasswordForEmail(email.value, { redirectTo: location.origin + "/" }); if (error) throw error; toast("Reset link sent"); } catch (ex) { err.textContent = ex.message; err.classList.remove("hidden"); } };
       qs("#auth-close").onclick = () => dlg.close();
+      if (typeof dlg.showModal==="function") dlg.showModal();
     }
-    qs("#login-btn").onclick = () => doAuth("login");
-    qs("#signup-btn").onclick = () => doAuth("signup");
-    qs("#logout-btn").onclick = async () => { await supabase.auth.signOut(); currentUser=null; renderAuth(); toast("Logged out"); };
+    qs("#login-menu-btn").onclick = ()=>openAuth("login");
+    qs("#signup-menu-btn").onclick = ()=>openAuth("signup");
+    qs("#logout-menu-btn").onclick = async ()=>{ await supabase.auth.signOut(); currentUser=null; renderUserUI(); toast("Logged out"); };
 
+    // User menu & notifications toggles
+    qs("#user-menu-toggle").onclick = ()=>qs("#user-menu").classList.toggle("hidden");
+    qs("#notif-btn").onclick = ()=>qs("#notifications-dropdown").classList.toggle("hidden");
+    qs("#clear-notif").onclick = ()=>{ qs("#notifications-list").innerHTML='<div class="p-4 text-center text-gray-500">No notifications</div>'; qs("#notification-badge").classList.add("hidden"); };
+
+    // ==== Product search (local seed + products table) ====
     const productSeed=[
       { id:"P001", english_name:"Premium Organic Apples", chinese_name:"優質有機蘋果", case_weight:40, packaging:"Cardboard box, 40 individual apples", image:"🍎", category:"Fruits" },
       { id:"P002", english_name:"Fresh Atlantic Salmon", chinese_name:"新鮮大西洋三文魚", case_weight:25, packaging:"Vacuum sealed, ice packed", image:"🐟", category:"Seafood" },
@@ -197,116 +286,250 @@
       { id:"P005", english_name:"Imported Italian Pasta", chinese_name:"進口意大利麵條", case_weight:20, packaging:"Individual 1lb packages", image:"🍝", category:"Pantry" },
       { id:"P006", english_name:"Organic Blueberries", chinese_name:"有機藍莓", case_weight:12, packaging:"Plastic pint containers", image:"🫐", category:"Fruits" }
     ];
+    let selectedProducts = []; // {productId, hostQuantity, minOrderQuantity, caseWeight, name, image}
 
-    async function findProducts(term) {
-      term=(term||"").trim(); if(!term) return [];
-      const local=productSeed.filter(p => (p.english_name + p.chinese_name + p.id).toLowerCase().includes(term.toLowerCase()));
-      const { data: db } = await supabase.from("products").select("*").or(`english_name.ilike.%${term}%,chinese_name.ilike.%${term}%,id.ilike.%${term}%`).limit(10);
-      const byId=new Map(); [...local, ...(db||[])].forEach(p=>byId.set(p.id,p)); return [...byId.values()].slice(0,10);
-    }
-    function renderSearchResults(items) {
-      const box=qs("#search-results"); if(!items.length){ box.classList.add("hidden"); box.innerHTML=""; return; }
-      box.classList.remove("hidden");
-      box.innerHTML = items.map(p => `<button type="button" data-pid="${p.id}" class="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center gap-3"><span class="text-xl">${p.image||"📦"}</span><div><div class="font-medium">${p.english_name}</div><div class="text-xs text-gray-600">${p.chinese_name} • ID: ${p.id} • Case: ${p.case_weight||"?"} lbs</div></div></button>`).join("");
-      qsa("#search-results [data-pid]").forEach(btn => btn.onclick = () => { const id=btn.getAttribute("data-pid"); const chosen=items.find(i=>i.id===id); selectProduct(chosen); box.classList.add("hidden"); });
+    function attachCreateFormHandlers() {
+      const searchInput = qs("#product-search");
+      const results = qs("#search-results");
+      searchInput.addEventListener("input", async function () {
+        const term = this.value.trim().toLowerCase();
+        if (!term) { results.classList.add("hidden"); results.innerHTML=""; return; }
+        const local = productSeed.filter(p => (p.english_name + p.chinese_name + p.id).toLowerCase().includes(term));
+        const { data: db } = await supabase.from("products").select("*").or(`english_name.ilike.%${term}%,chinese_name.ilike.%${term}%,id.ilike.%${term}%`).limit(10);
+        const all = [...local, ...(db||[])];
+        if (!all.length) { results.innerHTML='<div class="p-3 text-gray-500 text-center">No products found</div>'; results.classList.remove("hidden"); return; }
+        results.innerHTML = all.map(p => `
+          <button type="button" data-pid="${p.id}" class="w-full text-left p-3 hover:bg-gray-50 border-b last:border-b-0">
+            <div class="flex items-center space-x-3">
+              <div class="text-2xl">${p.image || "📦"}</div>
+              <div class="flex-1">
+                <div class="font-medium text-gray-900">${p.english_name}</div>
+                <div class="text-sm text-gray-600">${p.chinese_name || ""}</div>
+                <div class="text-xs text-gray-500">ID: ${p.id} • ${p.case_weight||"?"} lbs case • ${p.category||""}</div>
+              </div>
+            </div>
+          </button>`).join("");
+        results.classList.remove("hidden");
+        qsa('#search-results [data-pid]').forEach(btn => btn.onclick = () => selectProduct(all.find(p=>p.id===btn.dataset.pid)));
+      });
+      document.addEventListener('click', (e)=>{ if (!qs("#product-search").contains(e.target) && !qs("#search-results").contains(e.target)) qs("#search-results").classList.add("hidden"); });
+      qs("#add-product-btn").onclick = addProductToList;
+      qs("#cancel-product-btn").onclick = ()=>{ qs("#add-product-form").classList.add("hidden"); qs("#selected-product-preview").innerHTML=""; };
+      // Prevent accidental submit refresh
+      qs("#create-request-form").addEventListener("submit", e => e.preventDefault());
     }
     function selectProduct(p) {
-      const panel=qs("#selected-product"); panel.classList.remove("hidden");
-      panel.innerHTML = `<div class="flex items-start gap-4"><div class="text-4xl">${p.image||"📦"}</div><div class="flex-1"><div class="font-semibold">${p.english_name}</div><div class="text-sm text-gray-600">${p.chinese_name}</div><div class="mt-2 grid grid-cols-2 gap-3 text-sm"><div class="bg-white p-3 rounded border"><div class="text-gray-600">Total Case Weight</div><div class="text-xl font-bold text-indigo-600">${p.case_weight||"?"} lbs</div></div><div class="bg-white p-3 rounded border"><div class="text-gray-600">Packaging</div><div>${p.packaging||"-"}</div></div></div><input type="hidden" id="selected-id" value="${p.id}"></div></div>`;
-      qs("#total-qty").value=p.case_weight||20;
+      const prev = qs("#selected-product-preview");
+      prev.innerHTML = `
+        <div class="flex items-start space-x-4">
+          <div class="text-4xl">${p.image||"📦"}</div>
+          <div class="flex-1">
+            <h3 class="font-semibold text-gray-900">${p.english_name}</h3>
+            <p class="text-gray-600">${p.chinese_name||""}</p>
+            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-white p-3 rounded-lg border">
+                <p class="text-sm font-medium text-gray-700 mb-1">Total Case Weight</p>
+                <p class="text-2xl font-bold text-indigo-600">${p.case_weight||"?"} lbs</p>
+              </div>
+              <div class="bg-white p-3 rounded-lg border">
+                <p class="text-sm font-medium text-gray-700 mb-1">Packaging</p>
+                <p class="text-sm text-gray-600">${p.packaging||"-"}</p>
+              </div>
+            </div>
+            <div class="mt-3 text-sm text-gray-600"><p><span class="font-medium">Product ID:</span> ${p.id}</p></div>
+          </div>
+        </div>`;
+      qs("#add-product-form").classList.remove("hidden");
+      qs("#host-quantity").value = "";
+      qs("#min-order-quantity").value = "5";
+      qs("#add-product-btn").dataset.pid = p.id;
+      // Cache temp product on button dataset
+      qs("#add-product-btn").dataset.meta = JSON.stringify(p);
     }
-    qs("#product-search").addEventListener("input", async (e)=>renderSearchResults(await findProducts(e.target.value)));
+    function addProductToList() {
+      const meta = this.dataset.meta && JSON.parse(this.dataset.meta);
+      if (!meta) return;
+      const qty = parseInt(qs("#host-quantity").value||"0",10);
+      const min = parseInt(qs("#min-order-quantity").value||"5",10);
+      if (!qty || qty<min) { toast(`Enter a valid qty (min ${min})`); return; }
+      if (meta.case_weight && qty > meta.case_weight) { toast(`Qty cannot exceed ${meta.case_weight} lbs`); return; }
+      // Upsert product to DB (so remote users can see it)
+      supabase.from("products").upsert({
+        id: meta.id, english_name: meta.english_name, chinese_name: meta.chinese_name||null,
+        case_weight: meta.case_weight||null, packaging: meta.packaging||null, category: meta.category||null, image: meta.image||"📦"
+      }, { onConflict: "id" });
+      selectedProducts.push({ productId: meta.id, name: meta.english_name, image: meta.image||"📦", caseWeight: meta.case_weight||null, hostQuantity: qty, minOrderQuantity: min });
+      renderSelectedProducts();
+      qs("#add-product-form").classList.add("hidden");
+      qs("#selected-product-preview").innerHTML="";
+      qs("#create-request-btn").disabled = selectedProducts.length === 0;
+    }
+    function renderSelectedProducts() {
+      const wrap = qs("#selected-products-list");
+      if (!selectedProducts.length) { wrap.innerHTML = ""; return; }
+      wrap.innerHTML = selectedProducts.map((sp,i)=>`
+        <div class="bg-white border rounded-lg p-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="text-2xl">${sp.image}</div>
+            <div>
+              <div class="font-medium">${sp.name} • ${sp.productId}</div>
+              <div class="text-xs text-gray-600">Host qty: ${sp.hostQuantity} lbs • Min: ${sp.minOrderQuantity} lbs</div>
+            </div>
+          </div>
+          <button type="button" class="px-3 py-1 text-sm border rounded-lg" data-remove="${i}">Remove</button>
+        </div>
+      `).join("");
+      qsa('[data-remove]').forEach(b => b.onclick = ()=>{ selectedProducts.splice(parseInt(b.dataset.remove,10),1); renderSelectedProducts(); qs("#create-request-btn").disabled = selectedProducts.length === 0; });
+    }
 
-    qs("#create-btn").addEventListener("click", async (e) => {
+    // Create request submit
+    qs("#create-request-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!currentUser) { toast("Please log in"); return; }
-      const product_id=qs("#selected-id")?.value, host_qty=parseInt(qs("#host-qty").value||"0",10), total_qty=parseInt(qs("#total-qty").value||"0",10), min_order=parseInt(qs("#min-order").value||"5",10), notes=qs("#notes").value||"";
-      if(!product_id) return toast("Pick a product");
-      if(host_qty<min_order) return toast(`Your qty must be at least ${min_order} lbs`);
-      if(total_qty<host_qty||total_qty<=0) return toast("Total must be >= your qty");
-      const localP=productSeed.find(p=>p.id===product_id); if(localP){ await supabase.from("products").upsert(localP,{ onConflict:"id" }); }
+      if (!selectedProducts.length) { toast("Add at least one product"); return; }
+      const notes = qs("#request-notes").value || "";
       const { data: req, error: e1 } = await supabase.from("group_requests").insert({ host_id: currentUser.id, notes }).select("id").single();
-      if(e1){ console.error(e1); return toast("Failed to create request"); }
-      const { data: item, error: e2 } = await supabase.from("request_items").insert({ request_id: req.id, product_id, total_quantity: total_qty, current_quantity: 0, min_order_quantity: min_order, status: "open" }).select("id,total_quantity,current_quantity,min_order_quantity").single();
-      if(e2){ console.error(e2); return toast("Failed to add item"); }
-      const { error: e3 } = await supabase.from("participants").insert({ request_item_id: item.id, user_id: currentUser.id, quantity: host_qty, is_host: true });
-      if(e3){ console.error(e3); return toast("Failed to join as host"); }
-      await supabase.rpc("add_quantity", { p_request_item_id: item.id, p_add_qty: host_qty });
-      toast("Request created"); show("browse"); await refreshBrowse();
+      if (e1) { console.error(e1); toast("Failed to create request"); return; }
+      for (const sp of selectedProducts) {
+        const total = sp.caseWeight || (sp.hostQuantity * 2); // fallback
+        const { data: item, error: e2 } = await supabase.from("request_items").insert({
+          request_id: req.id, product_id: sp.productId, total_quantity: total, current_quantity: 0,
+          min_order_quantity: sp.minOrderQuantity, status: "open"
+        }).select("id").single();
+        if (e2) { console.error(e2); toast("Failed to add item"); continue; }
+        const { error: e3 } = await supabase.from("participants").insert({ request_item_id: item.id, user_id: currentUser.id, quantity: sp.hostQuantity, is_host: true });
+        if (e3) console.error(e3);
+        await supabase.rpc("add_quantity", { p_request_item_id: item.id, p_add_qty: sp.hostQuantity });
+      }
+      selectedProducts = []; renderSelectedProducts(); qs("#request-notes").value=""; qs("#create-request-btn").disabled=true;
+      toast("Request created"); showSection("browse");
     });
 
+    // ==== Browse & Detail ====
     async function refreshBrowse() {
-      const grid=qs("#requests-grid");
+      const grid = qs("#requests-grid");
       grid.innerHTML = "<div class='col-span-full text-center text-gray-500'>Loading...</div>";
-      let rows=null, err=null;
       try {
-        const res = await supabase.rpc("browse_requests");
-        rows = res.data; err = res.error || null;
+        const { data, error } = await supabase.rpc("browse_requests");
+        if (error) throw error;
+        const term=(qs("#search-requests").value||"").toLowerCase();
+        const status=qs("#filter-status").value;
+        const rows = (data||[]).filter(r => ((r.english_name + (r.chinese_name||"") + r.product_id + (r.host_email||"")).toLowerCase().includes(term)) && (status==="all" ? true : r.status===status));
+        if (!rows.length) { grid.innerHTML = "<div class='col-span-full text-center text-gray-500'>No requests found.</div>"; return; }
+        grid.innerHTML = rows.map(r => {
+          const remaining = r.total_quantity - r.current_quantity;
+          const pct = Math.round((r.current_quantity / r.total_quantity)*100);
+          return `<div class="bg-white rounded-xl border p-5 shadow-sm card-hover animate-fade-in">
+            <div class="flex items-start gap-3 mb-3">
+              <div class="text-3xl">${r.image || "📦"}</div>
+              <div class="flex-1">
+                <div class="font-semibold">${r.english_name}</div>
+                <div class="text-sm text-gray-600">${r.chinese_name || ""} • ID: ${r.product_id}</div>
+                <div class="text-xs text-gray-500">Host: ${r.host_email||"-"}</div>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-3 text-sm mb-3">
+              <div class="bg-blue-50 p-3 rounded"><div class="text-gray-600">Total</div><div class="text-xl font-bold text-blue-700">${r.total_quantity} lbs</div></div>
+              <div class="bg-green-50 p-3 rounded"><div class="text-gray-600">Committed</div><div class="text-xl font-bold text-green-700">${r.current_quantity} lbs</div></div>
+              <div class="bg-orange-50 p-3 rounded"><div class="text-gray-600">Remaining</div><div class="text-xl font-bold text-orange-700">${remaining} lbs</div></div>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2 mb-4"><div class="progress-bar h-2 rounded-full" style="width:${pct}%"></div></div>
+            <button type="button" data-open="${r.request_id}" class="w-full bg-indigo-600 text-white py-2 rounded-lg">View / Join</button>
+          </div>`;
+        }).join("");
+        qsa("[data-open]").forEach(b => b.onclick = () => openDetail(parseInt(b.dataset.open,10)));
       } catch (ex) {
-        err = ex;
-      }
-      if (err) {
-        console.error("browse_requests error:", err);
-        grid.innerHTML = `<div class="col-span-full bg-red-50 border border-red-200 text-red-700 p-3 rounded error">
-❌ Failed to load. Likely the SQL wasn't installed yet.
-Fix: In Supabase SQL editor, paste & run supabase.sql (v2). 
-Error: ${err.message || JSON.stringify(err)}
+        console.error(ex);
+        grid.innerHTML = `<div class="col-span-full bg-red-50 border border-red-200 text-red-700 p-3 rounded">
+          ❌ Failed to load. Install the SQL first (bootstrap script) or check RLS. Error: ${ex.message}
         </div>`;
-        return;
       }
-      if (!rows || !rows.length) { grid.innerHTML = "<div class='col-span-full text-center text-gray-500'>No requests yet.</div>"; return; }
-      const term=(qs("#search-requests").value||"").toLowerCase(), status=qs("#filter-status").value;
-      const filtered = rows.filter(r => ((r.english_name + r.chinese_name + r.product_id + (r.host_email||"")).toLowerCase().includes(term)) && (status==="all" ? true : r.status===status));
-      grid.innerHTML = filtered.map(r => { const pct=Math.round((r.current_quantity / r.total_quantity)*100); return `<div class="bg-white rounded-xl border p-5 shadow-sm"><div class="flex items-start gap-3 mb-3"><div class="text-3xl">${r.image||"📦"}</div><div class="flex-1"><div class="font-semibold">${r.english_name}</div><div class="text-sm text-gray-600">${r.chinese_name} • ID: ${r.product_id}</div><div class="text-xs text-gray-500">Host: ${r.host_email||"-"}</div></div></div><div class="grid grid-cols-3 gap-3 text-sm mb-3"><div class="bg-blue-50 p-3 rounded"><div class="text-gray-600">Total</div><div class="text-xl font-bold text-blue-700">${r.total_quantity} lbs</div></div><div class="bg-green-50 p-3 rounded"><div class="text-gray-600">Committed</div><div class="text-xl font-bold text-green-700">${r.current_quantity} lbs</div></div><div class="bg-orange-50 p-3 rounded"><div class="text-gray-600">Remaining</div><div class="text-xl font-bold text-orange-700">${r.total_quantity - r.current_quantity} lbs</div></div></div><div class="w-full bg-gray-200 rounded-full h-2 mb-4"><div class="progress-bar h-2 rounded-full" style="width:${pct}%"></div></div><button data-open="${r.request_id}" class="w-full bg-indigo-600 text-white py-2 rounded-lg">View / Join</button></div>`; }).join("");
-      qsa("[data-open]").forEach(btn => btn.onclick = () => openDrawer(parseInt(btn.getAttribute("data-open"),10)));
     }
 
-    async function openDrawer(requestId) {
-      const drawer=qs("#request-drawer"), body=qs("#drawer-body"), title=qs("#drawer-title"), sub=qs("#drawer-sub");
+    async function openDetail(requestId) {
       const { data: rows, error } = await supabase.rpc("request_detail", { p_request_id: requestId });
-      if (error || !rows?.length) { console.error("request_detail error:", error); return; }
-      const r=rows[0];
-      title.textContent = `${r.english_name} (${r.product_id})`;
-      sub.textContent = `Host: ${r.host_email||"-"} • Created: ${new Date(r.created_at).toLocaleString()}`;
-      const remaining=r.total_quantity - r.current_quantity, minOrder=r.min_order_quantity;
+      if (error || !rows?.length) { console.error(error); return; }
+      const r = rows[0];
       const participants = rows.map(x => ({ user_id:x.participant_user_id, email:x.participant_email, quantity:x.participant_quantity, is_host:x.participant_is_host })).filter(p=>p.user_id);
-      body.innerHTML = `<div class="grid grid-cols-3 gap-3 text-sm">
-        <div class="bg-blue-50 p-3 rounded"><div class="text-gray-600">Total</div><div class="text-xl font-bold text-blue-700">${r.total_quantity} lbs</div></div>
-        <div class="bg-green-50 p-3 rounded"><div class="text-gray-600">Committed</div><div class="text-xl font-bold text-green-700">${r.current_quantity} lbs</div></div>
-        <div class="bg-orange-50 p-3 rounded"><div class="text-gray-600">Remaining</div><div class="text-xl font-bold text-orange-700">${remaining} lbs</div></div>
-      </div>
-      <div><h4 class="font-semibold mt-4 mb-2">Participants (${participants.length})</h4>
-      <div class="space-y-2">${participants.map(p=>`<div class="flex items-center justify-between bg-gray-50 p-2 rounded"><div class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs">${(p.email||"U").charAt(0).toUpperCase()}</div><div class="text-sm">${p.email||"user"}</div>${p.is_host?'<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Host</span>':""}</div><div class="text-sm">${p.quantity} lbs</div></div>`).join("")}</div></div>
-      <div class="border-t pt-4 mt-4"><label class="block text-sm font-medium mb-1">Your Quantity (lbs)</label>
-        <input id="join-qty" type="number" min="${minOrder}" max="${remaining}" class="w-full px-3 py-2 border rounded-lg" placeholder="Min ${minOrder} lbs">
-        <p class="text-xs text-gray-500 mt-1">Min: ${minOrder} • Available: ${remaining}</p>
-        <div class="mt-3 flex gap-2"><button id="join-btn" class="flex-1 bg-green-600 text-white py-2 rounded-lg">Join</button><button id="close-btn" class="px-4 py-2 border rounded-lg">Close</button></div>
-      </div>`;
-      qs("#close-btn").onclick = () => drawer.close();
-      qs("#join-btn").onclick = async () => {
+      const remaining = r.total_quantity - r.current_quantity;
+      const modal = qs("#request-modal"); const body=qs("#modal-content");
+      body.innerHTML = `
+        <div class="p-5 border-b flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-semibold">${r.english_name} (${r.product_id})</h3>
+            <p class="text-sm text-gray-600">Host: ${r.host_email||"-"} • Created: ${new Date(r.created_at).toLocaleString()}</p>
+          </div>
+          <button type="button" id="close-modal" class="text-gray-600"><i data-lucide="x" class="w-6 h-6"></i></button>
+        </div>
+        <div class="p-5 space-y-5">
+          <div class="grid grid-cols-3 gap-3 text-sm">
+            <div class="bg-blue-50 p-3 rounded"><div class="text-gray-600">Total</div><div class="text-xl font-bold text-blue-700">${r.total_quantity} lbs</div></div>
+            <div class="bg-green-50 p-3 rounded"><div class="text-gray-600">Committed</div><div class="text-xl font-bold text-green-700">${r.current_quantity} lbs</div></div>
+            <div class="bg-orange-50 p-3 rounded"><div class="text-gray-600">Remaining</div><div class="text-xl font-bold text-orange-700">${remaining} lbs</div></div>
+          </div>
+          <div>
+            <h4 class="font-semibold mt-2 mb-2">Participants (${participants.length})</h4>
+            <div class="space-y-2">
+              ${participants.map(p=>`<div class="flex items-center justify-between bg-gray-50 p-2 rounded">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs">${(p.email||"U").charAt(0).toUpperCase()}</div>
+                  <div class="text-sm">${p.email||"user"}</div>
+                  ${p.is_host?'<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Host</span>':""}
+                </div>
+                <div class="text-sm">${p.quantity} lbs</div>
+              </div>`).join("")}
+            </div>
+          </div>
+          <div class="border-t pt-4">
+            <label class="block text-sm font-medium mb-1">Your Quantity (lbs)</label>
+            <input id="join-qty" type="number" min="${r.min_order_quantity}" max="${remaining}" class="w-full px-3 py-2 border rounded-lg" placeholder="Min ${r.min_order_quantity} lbs">
+            <p class="text-xs text-gray-500 mt-1">Min: ${r.min_order_quantity} • Available: ${remaining}</p>
+            <div class="mt-3 flex gap-2">
+              <button type="button" id="join-btn" class="flex-1 bg-green-600 text-white py-2 rounded-lg">Join / Update</button>
+              <button type="button" id="close2-btn" class="px-4 py-2 border rounded-lg">Close</button>
+            </div>
+          </div>
+        </div>`;
+      lucide.createIcons();
+      modal.classList.remove("hidden");
+      qs("#close-modal").onclick = ()=> modal.classList.add("hidden");
+      qs("#close2-btn").onclick = ()=> modal.classList.add("hidden");
+      qs("#join-btn").onclick = async ()=>{
         if (!currentUser) { toast("Please log in"); return; }
-        const qty=parseInt(qs("#join-qty").value||"0",10);
-        if (!qty || qty<minOrder || qty>remaining) return toast("Invalid qty");
+        const qty = parseInt(qs("#join-qty").value||"0",10);
+        if (!qty || qty<r.min_order_quantity || qty>remaining) { toast("Invalid qty"); return; }
         const { error: e1 } = await supabase.from("participants").upsert({ request_item_id: r.request_item_id, user_id: currentUser.id, quantity: qty, is_host: false }, { onConflict: "request_item_id,user_id" });
-        if (e1) { console.error(e1); return toast("Failed"); }
+        if (e1) { console.error(e1); toast("Failed"); return; }
         await supabase.rpc("recalc_request_item", { p_request_item_id: r.request_item_id });
-        toast("Joined"); await refreshBrowse(); await openDrawer(requestId);
+        toast("Saved"); refreshBrowse(); openDetail(requestId);
       };
-      if (typeof drawer.showModal==="function") drawer.showModal();
     }
 
+    // ==== My groups ====
     async function refreshMine() {
       const grid=qs("#my-groups-grid"); if(!currentUser){ grid.innerHTML="<div class='text-gray-500'>Log in to see your groups.</div>"; return; }
       const { data, error } = await supabase.rpc("my_groups"); if (error) { grid.innerHTML="<div class='text-red-600'>Failed to load.</div>"; return; }
       if (!data.length) { grid.innerHTML="<div class='text-gray-500'>No groups yet.</div>"; return; }
-      grid.innerHTML = data.map(r => `<div class="bg-white rounded-xl border p-5 shadow-sm"><div class="font-semibold mb-1">${r.english_name} • ${r.product_id}</div><div class="text-xs text-gray-600 mb-2">Role: ${r.is_host?"Host":"Participant"} • Qty: ${r.quantity} lbs</div><button data-open="${r.request_id}" class="w-full bg-indigo-600 text-white py-2 rounded-lg">Open</button></div>`).join("");
-      qsa("#my-groups-grid [data-open]").forEach(btn => btn.onclick = () => openDrawer(parseInt(btn.getAttribute("data-open"),10)));
+      grid.innerHTML = data.map(r => `<div class="bg-white rounded-xl border p-5 shadow-sm">
+        <div class="font-semibold mb-1">${r.english_name} • ${r.product_id}</div>
+        <div class="text-xs text-gray-600 mb-2">Role: ${r.is_host?"Host":"Participant"} • Qty: ${r.quantity} lbs</div>
+        <button type="button" data-open="${r.request_id}" class="w-full bg-indigo-600 text-white py-2 rounded-lg">Open</button>
+      </div>`).join("");
+      qsa("#my-groups-grid [data-open]").forEach(btn => btn.onclick = () => openDetail(parseInt(btn.getAttribute("data-open"),10)));
     }
 
-    qsa("button[data-section]").forEach(b => b.onclick = () => { show(b.dataset.section); if (b.dataset.section==="my-groups") refreshMine(); if (b.dataset.section==="browse") refreshBrowse(); });
-    qs("#drawer-close").onclick = () => qs("#request-drawer").close();
-    document.getElementById("create-form").addEventListener("submit", (e)=> e.preventDefault());
-    (async function init(){ await loadSession(); await refreshBrowse(); show("browse"); })();
+    // ==== Search/filter bindings ====
+    qs("#search-requests").addEventListener("input", refreshBrowse);
+    qs("#filter-status").addEventListener("change", refreshBrowse);
+    qsa("button[data-section]").forEach(b => b.onclick = ()=>showSection(b.dataset.section));
+
+    // ==== Init ====
+    (async function init(){
+      await loadSession();
+      attachCreateFormHandlers();
+      showSection("browse");
+      await refreshBrowse();
+    })();
   </script>
 </body>
 </html>
