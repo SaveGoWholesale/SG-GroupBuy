@@ -207,7 +207,7 @@
     function renderSearchResults(items) {
       const box=qs("#search-results"); if(!items.length){ box.classList.add("hidden"); box.innerHTML=""; return; }
       box.classList.remove("hidden");
-      box.innerHTML = items.map(p => `<button data-pid="${p.id}" class="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center gap-3"><span class="text-xl">${p.image||"📦"}</span><div><div class="font-medium">${p.english_name}</div><div class="text-xs text-gray-600">${p.chinese_name} • ID: ${p.id} • Case: ${p.case_weight||"?"} lbs</div></div></button>`).join("");
+      box.innerHTML = items.map(p => `<button type="button" data-pid="${p.id}" class="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center gap-3"><span class="text-xl">${p.image||"📦"}</span><div><div class="font-medium">${p.english_name}</div><div class="text-xs text-gray-600">${p.chinese_name} • ID: ${p.id} • Case: ${p.case_weight||"?"} lbs</div></div></button>`).join("");
       qsa("#search-results [data-pid]").forEach(btn => btn.onclick = () => { const id=btn.getAttribute("data-pid"); const chosen=items.find(i=>i.id===id); selectProduct(chosen); box.classList.add("hidden"); });
     }
     function selectProduct(p) {
@@ -305,6 +305,7 @@ Error: ${err.message || JSON.stringify(err)}
 
     qsa("button[data-section]").forEach(b => b.onclick = () => { show(b.dataset.section); if (b.dataset.section==="my-groups") refreshMine(); if (b.dataset.section==="browse") refreshBrowse(); });
     qs("#drawer-close").onclick = () => qs("#request-drawer").close();
+    document.getElementById("create-form").addEventListener("submit", (e)=> e.preventDefault());
     (async function init(){ await loadSession(); await refreshBrowse(); show("browse"); })();
   </script>
 </body>
