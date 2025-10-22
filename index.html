@@ -1,61 +1,212 @@
 <!DOCTYPE html>
+  <div id="updating-indicator"><div class="spinner"></div><span>Updating…</span></div>
+  <button id="cancel-request-fab" class="px-3 py-2 border rounded-lg text-red-600 bg-white shadow">Cancel Entire Request</button>
+
 <html lang="en" class="h-full">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SaveGo - Group Buying Platform (Supabase)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SaveGo - Group Buying Platform</title>
+  <script src="https://cdn.tailwindcss.com">
+async function setQuantityItem(requestItemId, minOrder, remaining){
+  if(!currentUser){ alert("Please log in"); return; }
+  const input = document.querySelector("#join-qty-"+requestItemId);
+  const qty = parseInt(input.value||"0",10);
+  if(isNaN(qty) || qty<0){ alert("Invalid quantity"); return; }
+  if(qty>remaining){ if(!confirm("Quantity exceeds remaining. Continue?")) return; }
+  try{
+    const { data, error } = await supabase.rpc("set_quantity_request_item", { p_request_item_id: requestItemId, p_quantity: qty });
+    if(error) throw error;
+    await renderRequests(); // refresh cards
+    // also refresh the open modal
+    const open = !document.querySelector("#request-modal").classList.contains("hidden");
+    if(open){ const idText = document.querySelector("#modal-content")?.querySelector("h3")?.textContent || ""; }
+  }catch(ex){ alert(ex.message); }
+}
+
+async function optOutItem(requestItemId){
+  if(!currentUser){ alert("Please log in"); return; }
+  if(!confirm("Opt out of this product? Your quantity will be set to 0.")) return;
+  try{
+    const { data, error } = await supabase.rpc("opt_out_request_item", { p_request_item_id: requestItemId });
+    if(error) throw error;
+    await renderRequests();
+    alert("You have opted out of this product.");
+  }catch(ex){ alert(ex.message); }
+}
+
+async function cancelItem(requestItemId){
+  if(!currentUser){ alert("Please log in"); return; }
+  if(!confirm("Cancel this product for everyone? This cannot be undone.")) return;
+  try{
+    const { data, error } = await supabase.rpc("opt_out_request_item", { p_request_item_id: requestItemId });
+    if(error) throw error;
+    await renderRequests();
+    alert("Product cancelled.");
+  }catch(ex){ alert(ex.message); }
+}
+
+
+async function cancelWholeRequest(requestId){
+  if(!currentUser){ alert("Please log in"); return; }
+  if(!confirm("Cancel the entire request and delete all products? This cannot be undone.")) return;
+  try{
+    const { data, error } = await supabase.rpc("cancel_request", { p_request_id: requestId });
+    if(error) throw error;
+    document.querySelector("#request-modal").classList.add("hidden");
+    await renderRequests();
+    alert("Request cancelled.");
+  }catch(ex){ alert(ex.message); }
+}
+
+</script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
+async function setQuantityItem(requestItemId, minOrder, remaining){
+  if(!currentUser){ alert("Please log in"); return; }
+  const input = document.querySelector("#join-qty-"+requestItemId);
+  const qty = parseInt(input.value||"0",10);
+  if(isNaN(qty) || qty<0){ alert("Invalid quantity"); return; }
+  if(qty>remaining){ if(!confirm("Quantity exceeds remaining. Continue?")) return; }
+  try{
+    const { data, error } = await supabase.rpc("set_quantity_request_item", { p_request_item_id: requestItemId, p_quantity: qty });
+    if(error) throw error;
+    await renderRequests(); // refresh cards
+    // also refresh the open modal
+    const open = !document.querySelector("#request-modal").classList.contains("hidden");
+    if(open){ const idText = document.querySelector("#modal-content")?.querySelector("h3")?.textContent || ""; }
+  }catch(ex){ alert(ex.message); }
+}
+
+async function optOutItem(requestItemId){
+  if(!currentUser){ alert("Please log in"); return; }
+  if(!confirm("Opt out of this product? Your quantity will be set to 0.")) return;
+  try{
+    const { data, error } = await supabase.rpc("opt_out_request_item", { p_request_item_id: requestItemId });
+    if(error) throw error;
+    await renderRequests();
+    alert("You have opted out of this product.");
+  }catch(ex){ alert(ex.message); }
+}
+
+async function cancelItem(requestItemId){
+  if(!currentUser){ alert("Please log in"); return; }
+  if(!confirm("Cancel this product for everyone? This cannot be undone.")) return;
+  try{
+    const { data, error } = await supabase.rpc("opt_out_request_item", { p_request_item_id: requestItemId });
+    if(error) throw error;
+    await renderRequests();
+    alert("Product cancelled.");
+  }catch(ex){ alert(ex.message); }
+}
+
+
+async function cancelWholeRequest(requestId){
+  if(!currentUser){ alert("Please log in"); return; }
+  if(!confirm("Cancel the entire request and delete all products? This cannot be undone.")) return;
+  try{
+    const { data, error } = await supabase.rpc("cancel_request", { p_request_id: requestId });
+    if(error) throw error;
+    document.querySelector("#request-modal").classList.add("hidden");
+    await renderRequests();
+    alert("Request cancelled.");
+  }catch(ex){ alert(ex.message); }
+}
+
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+async function setQuantityItem(requestItemId, minOrder, remaining){
+  if(!currentUser){ alert("Please log in"); return; }
+  const input = document.querySelector("#join-qty-"+requestItemId);
+  const qty = parseInt(input.value||"0",10);
+  if(isNaN(qty) || qty<0){ alert("Invalid quantity"); return; }
+  if(qty>remaining){ if(!confirm("Quantity exceeds remaining. Continue?")) return; }
+  try{
+    const { data, error } = await supabase.rpc("set_quantity_request_item", { p_request_item_id: requestItemId, p_quantity: qty });
+    if(error) throw error;
+    await renderRequests(); // refresh cards
+    // also refresh the open modal
+    const open = !document.querySelector("#request-modal").classList.contains("hidden");
+    if(open){ const idText = document.querySelector("#modal-content")?.querySelector("h3")?.textContent || ""; }
+  }catch(ex){ alert(ex.message); }
+}
+
+async function optOutItem(requestItemId){
+  if(!currentUser){ alert("Please log in"); return; }
+  if(!confirm("Opt out of this product? Your quantity will be set to 0.")) return;
+  try{
+    const { data, error } = await supabase.rpc("opt_out_request_item", { p_request_item_id: requestItemId });
+    if(error) throw error;
+    await renderRequests();
+    alert("You have opted out of this product.");
+  }catch(ex){ alert(ex.message); }
+}
+
+async function cancelItem(requestItemId){
+  if(!currentUser){ alert("Please log in"); return; }
+  if(!confirm("Cancel this product for everyone? This cannot be undone.")) return;
+  try{
+    const { data, error } = await supabase.rpc("opt_out_request_item", { p_request_item_id: requestItemId });
+    if(error) throw error;
+    await renderRequests();
+    alert("Product cancelled.");
+  }catch(ex){ alert(ex.message); }
+}
+
+
+async function cancelWholeRequest(requestId){
+  if(!currentUser){ alert("Please log in"); return; }
+  if(!confirm("Cancel the entire request and delete all products? This cannot be undone.")) return;
+  try{
+    const { data, error } = await supabase.rpc("cancel_request", { p_request_id: requestId });
+    if(error) throw error;
+    document.querySelector("#request-modal").classList.add("hidden");
+    await renderRequests();
+    alert("Request cancelled.");
+  }catch(ex){ alert(ex.message); }
+}
+
+</script>
   <style>
-    body { box-sizing: border-box; }
-    @keyframes fadeIn { from {opacity: 0; transform: translateY(20px);} to {opacity: 1; transform: translateY(0);} }
-    .animate-fade-in { animation: fadeIn .6s ease-out; }
-    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .card-hover { transition: all .3s ease; }
-    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,.1); }
-    .progress-bar { background: linear-gradient(90deg, #10b981, #059669); transition: width .4s ease; }
-    .search-dropdown { max-height: 300px; overflow-y:auto; box-shadow: 0 4px 10px rgba(0,0,0,.08); z-index:50; }
+    body{ box-sizing:border-box; }
+    .card-hover{ transition:all .3s ease }
+    .card-hover:hover{ transform:translateY(-4px); box-shadow:0 10px 25px rgba(0,0,0,.1) }
+    .progress-bar{ background:linear-gradient(90deg,#10b981,#059669); transition:width .5s ease }
+    .search-dropdown{ max-height:300px; overflow-y:auto; box-shadow:0 4px 10px rgba(0,0,0,.08); z-index:50 }
+    .chat-bubble{ max-width:70%; word-wrap:break-word }
   </style>
+
+  <style>
+    #updating-indicator {
+      position: fixed; top: 12px; right: 14px; background: rgba(17,24,39,.85);
+      color:#fff; font-size:12px; padding:6px 10px; border-radius:9999px;
+      display:flex; align-items:center; gap:6px; opacity:0; pointer-events:none;
+      transform:translateY(-6px); transition:opacity .6s ease, transform .6s ease; z-index:1000;
+    }
+    #updating-indicator.show { opacity:1; transform:translateY(0); }
+    #updating-indicator .spinner { width:14px; height:14px; border-radius:9999px;
+      border:2px solid rgba(255,255,255,.4); border-top-color:#fff; animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #cancel-request-fab { position: fixed; top: 64px; right: 20px; z-index:1001; display:none; }
+    #cancel-request-fab.show { display:inline-flex; }
+  </style>
+
 </head>
 <body class="h-full bg-gray-50">
-  <!-- Navigation -->
   <nav class="bg-white shadow-sm border-b sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center space-x-2">
-          <div class="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
-            <i data-lucide="shopping-bag" class="w-5 h-5 text-white"></i>
-          </div>
+          <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center"><i data-lucide="shopping-bag" class="w-5 h-5 text-white"></i></div>
           <span class="text-xl font-bold text-gray-900">SaveGo</span>
         </div>
-
         <div class="hidden md:flex items-center space-x-8">
-          <button data-section="browse" class="text-gray-600 hover:text-gray-900 transition-colors">Browse Requests</button>
-          <button data-section="create" class="text-gray-600 hover:text-gray-900 transition-colors">Create Request</button>
-          <button data-section="my-groups" class="text-gray-600 hover:text-gray-900 transition-colors">My Groups</button>
+          <button onclick="showSection('browse')" class="text-gray-600 hover:text-gray-900">Browse Requests</button>
+          <button onclick="showSection('create')" class="text-gray-600 hover:text-gray-900">Create Request</button>
+          <button onclick="showSection('my-groups')" class="text-gray-600 hover:text-gray-900">My Groups</button>
         </div>
-
         <div class="flex items-center space-x-4">
           <div class="relative">
-            <button id="notif-btn" class="p-2 text-gray-600 hover:text-gray-900 transition-colors relative" type="button">
-              <i data-lucide="bell" class="w-5 h-5"></i>
-              <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 hidden items-center justify-center">0</span>
-            </button>
-            <div id="notifications-dropdown" class="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden">
-              <div class="p-4 border-b">
-                <h3 class="font-semibold text-gray-900">Notifications</h3>
-              </div>
-              <div id="notifications-list" class="max-h-64 overflow-y-auto">
-                <div class="p-4 text-center text-gray-500">No notifications</div>
-              </div>
-              <div class="p-3 border-t text-center">
-                <button id="clear-notif" class="text-sm text-gray-600 hover:text-gray-800" type="button">Clear All</button>
-              </div>
-            </div>
-          </div>
-          <div class="relative">
-            <button id="user-menu-toggle" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition-colors" type="button">
+            <button onclick="toggleUserMenu()" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50" type="button">
               <div id="user-avatar" class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">G</div>
               <span id="user-name-display" class="text-sm font-medium text-gray-700 hidden md:block">Guest</span>
               <i data-lucide="chevron-down" class="w-4 h-4 text-gray-500"></i>
@@ -66,12 +217,12 @@
                   <p class="font-medium text-gray-900" id="menu-user-name">User</p>
                   <p class="text-sm text-gray-600" id="menu-user-email">user@email.com</p>
                 </div>
-                <button id="profile-menu-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" type="button">Profile Settings</button>
-                <button id="logout-menu-btn" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" type="button">Logout</button>
+                <button onclick="showSection('profile')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" type="button">Profile Settings</button>
+                <button onclick="logout()" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" type="button">Logout</button>
               </div>
               <div id="guest-menu">
-                <button id="login-menu-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" type="button">Login</button>
-                <button id="signup-menu-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" type="button">Create Account</button>
+                <button onclick="showLoginModal()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" type="button">Login</button>
+                <button onclick="showSignupModal()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" type="button">Create Account</button>
               </div>
             </div>
           </div>
@@ -80,19 +231,14 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-    <!-- Browse Section -->
+    <!-- Browse -->
     <div id="browse-section" class="section">
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 mb-4">Active Group Buy Requests</h1>
         <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1">
-            <input id="search-requests" placeholder="Search by product name, ID, or host..."
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-          </div>
-          <select id="filter-status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+          <div class="flex-1"><input id="search-requests" placeholder="Search by product name, ID, or host..." class="w-full px-4 py-2 border rounded-lg"></div>
+          <select id="filter-status" class="px-4 py-2 border rounded-lg">
             <option value="all">All Status</option>
             <option value="open">Open</option>
             <option value="almost-full">Almost Full</option>
@@ -103,329 +249,258 @@
       <div id="requests-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
 
-    <!-- Create Request Section -->
+    <!-- Create -->
     <div id="create-section" class="section hidden">
       <div class="max-w-2xl mx-auto">
         <h1 class="text-3xl font-bold text-gray-900 mb-8">Create Group Buy Request</h1>
-        <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="bg-white rounded-xl shadow p-6">
           <form id="create-request-form">
             <div class="mb-6">
               <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Products</h3>
+                <h3 class="text-lg font-semibold">Products</h3>
                 <span class="text-sm text-gray-600">Add multiple products to your group buy</span>
               </div>
-
               <div id="selected-products-list" class="space-y-4 mb-4"></div>
-
               <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
-                <div class="text-center mb-4">
-                  <i data-lucide="plus-circle" class="w-8 h-8 text-gray-400 mx-auto mb-2"></i>
-                  <p class="text-gray-600">Add a product to your group buy</p>
-                </div>
+                <div class="text-center mb-4"><i data-lucide="plus-circle" class="w-8 h-8 text-gray-400 mx-auto mb-2"></i><p class="text-gray-600">Add a product to your group buy</p></div>
                 <div class="relative mb-4">
-                  <input id="product-search" placeholder="Search by product name or ID..."
-                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                  <div id="search-results" class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg mt-1 search-dropdown hidden"></div>
+                  <input id="product-search" placeholder="Search by product name or ID..." class="w-full px-4 py-3 border rounded-lg">
+                  <div id="search-results" class="absolute top-full left-0 right-0 bg-white border rounded-lg mt-1 search-dropdown hidden"></div>
                 </div>
                 <div id="add-product-form" class="hidden">
                   <div id="selected-product-preview" class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg"></div>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Your Required Quantity (lbs)</label>
-                      <input type="number" id="host-quantity" min="1" placeholder="e.g., 10"
-                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                    </div>
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Order (lbs)</label>
-                      <input type="number" id="min-order-quantity" min="1" placeholder="e.g., 5" value="5"
-                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                    </div>
+                    <div><label class="block text-sm font-medium mb-2">Your Required Quantity (lbs)</label><input type="number" id="host-quantity" min="1" placeholder="e.g., 10" class="w-full px-4 py-2 border rounded-lg"></div>
+                    <div><label class="block text-sm font-medium mb-2">Minimum Order (lbs)</label><input type="number" id="min-order-quantity" min="1" value="5" class="w-full px-4 py-2 border rounded-lg"></div>
                   </div>
                   <div id="quantity-feedback" class="mb-4 text-sm hidden"></div>
-                  <div class="flex space-x-3">
-                    <button type="button" id="add-product-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors">
-                      <i data-lucide="plus" class="w-4 h-4 inline mr-2"></i>
-                      Add Product
-                    </button>
-                    <button type="button" id="cancel-product-btn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-400 transition-colors">
-                      Cancel
-                    </button>
+                  <div class="flex gap-3">
+                    <button type="button" id="add-product-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg">Add Product</button>
+                    <button type="button" id="cancel-product-btn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg">Cancel</button>
                   </div>
                 </div>
               </div>
             </div>
-
-            <div class="mb-6">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Additional Notes (Optional)</label>
-              <textarea id="request-notes" rows="3" placeholder="Any special requirements, pickup location preferences, etc..."
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
-            </div>
-
-            <button type="submit" id="create-request-btn"
-                    class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    disabled>Create Group Buy Request</button>
-            <p id="create-help-text" class="text-sm text-gray-500 text-center mt-2">Add at least one product to create your request</p>
+            <div class="mb-6"><label class="block text-sm font-medium mb-2">Additional Notes (Optional)</label><textarea id="request-notes" rows="3" class="w-full px-4 py-3 border rounded-lg"></textarea></div>
+            <button type="submit" id="create-request-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>Create Group Buy Request</button>
           </form>
         </div>
       </div>
     </div>
 
-    <!-- My Groups Section -->
+    <!-- My Groups -->
     <div id="my-groups-section" class="section hidden">
       <h1 class="text-3xl font-bold text-gray-900 mb-8">My Group Buys</h1>
       <div id="my-groups-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+
+    <!-- Profile -->
+    <div id="profile-section" class="section hidden">
+      <div class="max-w-2xl mx-auto bg-white rounded-xl shadow p-6">
+        <div class="flex items-center gap-4 mb-6">
+          <div id="profile-avatar" class="w-16 h-16 bg-indigo-600 rounded-full text-white flex items-center justify-center text-2xl">U</div>
+          <div><div id="profile-name" class="font-semibold">User</div><div id="profile-email" class="text-sm text-gray-600">user@email.com</div></div>
+        </div>
+        <form id="profile-form">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div><label class="text-sm">Full Name</label><input id="profile-full-name" class="w-full px-3 py-2 border rounded-lg"></div>
+            <div><label class="text-sm">Email</label><input id="profile-email-input" type="email" class="w-full px-3 py-2 border rounded-lg"></div>
+          </div>
+          <div class="mb-4"><label class="text-sm">Phone Number</label><input id="profile-phone" class="w-full px-3 py-2 border rounded-lg"></div>
+          <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg" type="submit">Save Changes</button>
+        </form>
+      </div>
     </div>
   </div>
 
   <!-- Request Detail Modal -->
   <div id="request-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-      <div id="modal-content" class="p-5"></div>
+      <div id="modal-content"></div>
     </div>
   </div>
 
-  <!-- Auth Modal -->
-  <dialog id="auth-modal" class="rounded-xl p-0 backdrop:bg-black/40">
-    <form method="dialog" class="bg-white rounded-xl w-[420px] max-w-[95vw]">
-      <div class="p-5 border-b flex items-center justify-between">
-        <h3 id="auth-title" class="text-lg font-semibold">Log in</h3>
-        <button id="auth-close" class="text-gray-500" value="cancel" type="button"><i data-lucide="x" class="w-5 h-5"></i></button>
+  <!-- Chat Modal -->
+  <div id="chat-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-2xl w-full h-[600px] flex flex-col">
+      <div class="p-4 border-b flex justify-between items-center">
+        <h3 class="text-lg font-semibold" id="chat-modal-title">Group Chat</h3>
+        <button onclick="closeChatModal()" class="text-gray-500 hover:text-gray-700" type="button"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-      <div class="p-5 space-y-3">
-        <div>
-          <label class="block text-sm font-medium mb-1">Email</label>
-          <input id="auth-email" type="email" required class="w-full px-3 py-2 border rounded-lg">
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Password</label>
-          <input id="auth-password" type="password" required class="w-full px-3 py-2 border rounded-lg">
-        </div>
-        <p id="auth-error" class="text-sm text-red-600 hidden"></p>
-        <button id="auth-submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg" type="button"></button>
-        <div class="text-center">
-          <button type="button" id="forgot-btn" class="text-sm text-indigo-600 hover:underline">Forgot password?</button>
+      <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3"></div>
+      <div class="p-4 border-t">
+        <div class="flex space-x-2">
+          <input id="chat-input" placeholder="Type your message..." class="flex-1 px-3 py-2 border rounded-lg">
+          <button onclick="sendMessage()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg" type="button"><i data-lucide="send" class="w-4 h-4"></i></button>
         </div>
       </div>
-    </form>
-  </dialog>
+    </div>
+  </div>
 
-  <template id="toast">
-    <div class="fixed inset-x-0 top-3 mx-auto w-fit bg-black text-white text-sm px-4 py-2 rounded-lg shadow">Saved</div>
-  </template>
+  <!-- Auth Modals -->
+  <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-md w-full">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold">Login</h2><button onclick="closeLoginModal()" class="text-gray-500" type="button"><i data-lucide="x" class="w-6 h-6"></i></button></div>
+        <form id="login-form">
+          <div class="mb-4"><label class="block text-sm mb-2">Email</label><input id="login-identifier" type="email" required class="w-full px-4 py-2 border rounded-lg"></div>
+          <div class="mb-6"><label class="block text-sm mb-2">Password</label><input id="login-password" type="password" required class="w-full px-4 py-2 border rounded-lg"></div>
+          <button class="w-full bg-indigo-600 text-white py-2 rounded-lg mb-2" type="submit">Login</button>
+          <div class="text-center text-sm">No account? <button type="button" onclick="showSignupModal()" class="text-indigo-600">Sign up</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div id="signup-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-md w-full">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold">Create Account</h2><button onclick="closeSignupModal()" class="text-gray-500" type="button"><i data-lucide="x" class="w-6 h-6"></i></button></div>
+        <form id="signup-form">
+          <div class="mb-4"><label class="block text-sm mb-2">Full Name</label><input id="signup-name" required class="w-full px-4 py-2 border rounded-lg"></div>
+          <div class="mb-4"><label class="block text-sm mb-2">Email</label><input id="signup-email" type="email" required class="w-full px-4 py-2 border rounded-lg"></div>
+          <div class="mb-4"><label class="block text-sm mb-2">Phone Number</label><input id="signup-phone" required class="w-full px-4 py-2 border rounded-lg"></div>
+          <div class="mb-6"><label class="block text-sm mb-2">Password</label><input id="signup-password" type="password" required class="w-full px-4 py-2 border rounded-lg"><p class="text-xs text-gray-500 mt-1">Must be at least 8 characters</p></div>
+          <button class="w-full bg-indigo-600 text-white py-2 rounded-lg" type="submit">Create Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <script>
-    // ==== Supabase client ====
     const SUPABASE_URL = "https://bwlqwrlsibmqttndymzu.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3bHF3cmxzaWJtcXR0bmR5bXp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDA0MzcsImV4cCI6MjA3NjA3NjQzN30.QQ8Lncmyl_VfP4a_hc9JP-W9YdlcRl21-8N4LTi2WDM";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, storageKey: "savego-auth" } });
-
-    // ==== Helpers ====
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth:{ persistSession:true, storageKey:"savego-auth" } });
     lucide.createIcons();
-    const qs = (s) => document.querySelector(s);
-    const qsa = (s) => Array.from(document.querySelectorAll(s));
-    function toast(t) { const el=qs("#toast").content.cloneNode(true).firstElementChild; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),2000); }
-    function showSection(id) { qsa(".section").forEach(s=>s.classList.add("hidden")); qs(`#${id}-section`).classList.remove("hidden"); if(id==="browse") refreshBrowse(); if(id==="my-groups") refreshMine(); }
 
-    // ==== Auth ====
     let currentUser = null;
-    async function loadSession() {
-      const { data: { user } } = await supabase.auth.getUser();
+    function toggleUserMenu(){ document.querySelector("#user-menu").classList.toggle("hidden"); }
+    function showSection(name){ document.querySelectorAll(".section").forEach(s=>s.classList.add("hidden")); document.querySelector("#"+name+"-section").classList.remove("hidden"); if(name==="browse") renderRequests(); if(name==="my-groups") renderMyGroups(); }
+
+    async function loadSession(){
+      const { data:{ user } } = await supabase.auth.getUser();
       currentUser = user || null;
-      renderUserUI();
-      if (currentUser) await ensureProfile(currentUser);
+      const avatar=document.querySelector("#user-avatar"), name=document.querySelector("#user-name-display");
+      const logged=document.querySelector("#logged-in-menu"), guest=document.querySelector("#guest-menu");
+      if(currentUser){ avatar.textContent=(currentUser.email||"U").charAt(0).toUpperCase(); name.textContent=currentUser.email||"User"; name.classList.remove("hidden"); logged.classList.remove("hidden"); guest.classList.add("hidden"); await ensureProfile(currentUser); loadProfile(); }
+      else{ avatar.textContent="G"; name.textContent="Guest"; name.classList.add("hidden"); logged.classList.add("hidden"); guest.classList.remove("hidden"); }
     }
-    async function ensureProfile(user) {
-      const { data: p } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
-      if (!p) await supabase.from("profiles").insert({ id: user.id, email: user.email, full_name: user.email?.split("@")[0] || "User" });
-    }
-    function renderUserUI() {
-      const avatar=qs("#user-avatar"), name=qs("#user-name-display"), menu=qs("#user-menu"), logged=qs("#logged-in-menu"), guest=qs("#guest-menu");
-      if (currentUser) {
-        avatar.textContent = (currentUser.email||"U").charAt(0).toUpperCase();
-        name.textContent = currentUser.email||"User"; name.classList.remove("hidden");
-        logged.classList.remove("hidden"); guest.classList.add("hidden");
-        qs("#menu-user-name").textContent = currentUser.email?.split("@")[0] || "User";
-        qs("#menu-user-email").textContent = currentUser.email || "";
-      } else {
-        avatar.textContent = "G"; name.textContent = "Guest"; name.classList.add("hidden");
-        logged.classList.add("hidden"); guest.classList.remove("hidden");
-      }
-      menu.classList.add("hidden");
-    }
-    function openAuth(mode) {
-      const dlg=qs("#auth-modal"); const title=qs("#auth-title"); const submit=qs("#auth-submit"); const email=qs("#auth-email"); const pwd=qs("#auth-password"); const err=qs("#auth-error");
-      title.textContent = mode==="login" ? "Log in" : "Create account";
-      submit.textContent = mode==="login" ? "Log in" : "Sign up";
-      err.classList.add("hidden"); email.value=""; pwd.value="";
-      submit.onclick = async () => {
-        try {
-          if (mode==="login") { const { error } = await supabase.auth.signInWithPassword({ email: email.value, password: pwd.value }); if (error) throw error; }
-          else { const { error } = await supabase.auth.signUp({ email: email.value, password: pwd.value }); if (error) throw error; }
-          dlg.close(); await loadSession(); toast(mode==="login" ? "Logged in" : "Account created");
-        } catch (ex) { err.textContent = ex.message; err.classList.remove("hidden"); }
-      };
-      qs("#forgot-btn").onclick = async () => { try { const { error } = await supabase.auth.resetPasswordForEmail(email.value, { redirectTo: location.origin + "/" }); if (error) throw error; toast("Reset link sent"); } catch (ex) { err.textContent = ex.message; err.classList.remove("hidden"); } };
-      qs("#auth-close").onclick = () => dlg.close();
-      if (typeof dlg.showModal==="function") dlg.showModal();
-    }
-    qs("#login-menu-btn").onclick = ()=>openAuth("login");
-    qs("#signup-menu-btn").onclick = ()=>openAuth("signup");
-    qs("#logout-menu-btn").onclick = async ()=>{ await supabase.auth.signOut(); currentUser=null; renderUserUI(); toast("Logged out"); };
+    async function ensureProfile(user){ const { data } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle(); if(!data){ await supabase.from("profiles").insert({ id:user.id, email:user.email, full_name:user.email?.split("@")[0]||"User" }); } }
+    async function loadProfile(){ if(!currentUser) return; const { data:p } = await supabase.from("profiles").select("*").eq("id", currentUser.id).maybeSingle(); if(!p) return; document.querySelector("#menu-user-name").textContent=p.full_name||currentUser.email?.split("@")[0]||"User"; document.querySelector("#menu-user-email").textContent=p.email||currentUser.email||""; document.querySelector("#profile-name").textContent=p.full_name||currentUser.email?.split("@")[0]||"User"; document.querySelector("#profile-email").textContent=p.email||currentUser.email||""; document.querySelector("#profile-avatar").textContent=(p.full_name||"U").charAt(0).toUpperCase(); document.querySelector("#profile-full-name").value=p.full_name||""; document.querySelector("#profile-email-input").value=p.email||currentUser.email||""; document.querySelector("#profile-phone").value=p.phone||""; }
+    async function logout(){ await supabase.auth.signOut(); currentUser=null; loadSession(); showSection("browse"); }
 
-    // User menu & notifications toggles
-    qs("#user-menu-toggle").onclick = ()=>qs("#user-menu").classList.toggle("hidden");
-    qs("#notif-btn").onclick = ()=>qs("#notifications-dropdown").classList.toggle("hidden");
-    qs("#clear-notif").onclick = ()=>{ qs("#notifications-list").innerHTML='<div class="p-4 text-center text-gray-500">No notifications</div>'; qs("#notification-badge").classList.add("hidden"); };
+    // Auth
+    function showLoginModal(){ document.querySelector("#login-modal").classList.remove("hidden"); }
+    function closeLoginModal(){ document.querySelector("#login-modal").classList.add("hidden"); }
+    function showSignupModal(){ document.querySelector("#signup-modal").classList.remove("hidden"); }
+    function closeSignupModal(){ document.querySelector("#signup-modal").classList.add("hidden"); }
+    document.querySelector("#login-form").addEventListener("submit", async (e)=>{ e.preventDefault(); const email=document.querySelector("#login-identifier").value.trim(); const password=document.querySelector("#login-password").value; const { error }=await supabase.auth.signInWithPassword({ email, password }); if(error){ alert(error.message); return; } closeLoginModal(); await loadSession(); renderRequests(); });
+    document.querySelector("#signup-form").addEventListener("submit", async (e)=>{ e.preventDefault(); const full_name=document.querySelector("#signup-name").value.trim(); const email=document.querySelector("#signup-email").value.trim(); const phone=document.querySelector("#signup-phone").value.trim(); const password=document.querySelector("#signup-password").value; if(password.length<8){ alert("Password must be at least 8 characters"); return; } const { data, error }=await supabase.auth.signUp({ email, password }); if(error){ alert(error.message); return; } if(data.user){ await supabase.from("profiles").upsert({ id:data.user.id, email, full_name, phone }); } closeSignupModal(); await loadSession(); });
 
-    // ==== Product search (local seed + products table) ====
+    // Product search
     const productSeed=[
-      { id:"P001", english_name:"Premium Organic Apples", chinese_name:"優質有機蘋果", case_weight:40, packaging:"Cardboard box, 40 individual apples", image:"🍎", category:"Fruits" },
-      { id:"P002", english_name:"Fresh Atlantic Salmon", chinese_name:"新鮮大西洋三文魚", case_weight:25, packaging:"Vacuum sealed, ice packed", image:"🐟", category:"Seafood" },
-      { id:"P003", english_name:"Organic Baby Spinach", chinese_name:"有機嫩菠菜", case_weight:15, packaging:"Plastic containers, pre-washed", image:"🥬", category:"Vegetables" },
-      { id:"P004", english_name:"Premium Wagyu Beef", chinese_name:"優質和牛肉", case_weight:30, packaging:"Vacuum sealed portions", image:"🥩", category:"Meat" },
-      { id:"P005", english_name:"Imported Italian Pasta", chinese_name:"進口意大利麵條", case_weight:20, packaging:"Individual 1lb packages", image:"🍝", category:"Pantry" },
-      { id:"P006", english_name:"Organic Blueberries", chinese_name:"有機藍莓", case_weight:12, packaging:"Plastic pint containers", image:"🫐", category:"Fruits" }
+      { id:"P001", english_name:"Premium Organic Apples", chinese_name:"优质有机苹果", case_weight:40, packaging:"Cardboard box, 40 individual apples", image:"🍎", category:"Fruits" },
+      { id:"P002", english_name:"Fresh Atlantic Salmon", chinese_name:"新鲜大西洋三文鱼", case_weight:25, packaging:"Vacuum sealed, ice packed", image:"🐟", category:"Seafood" },
+      { id:"P003", english_name:"Organic Baby Spinach", chinese_name:"有机嫩菠菜", case_weight:15, packaging:"Plastic containers, pre-washed", image:"🥬", category:"Vegetables" },
+      { id:"P004", english_name:"Premium Wagyu Beef", chinese_name:"优质和牛肉", case_weight:30, packaging:"Vacuum sealed portions", image:"🥩", category:"Meat" },
+      { id:"P005", english_name:"Imported Italian Pasta", chinese_name:"进口意大利面条", case_weight:20, packaging:"Individual 1lb packages", image:"🍝", category:"Pantry" },
+      { id:"P006", english_name:"Organic Blueberries", chinese_name:"有机蓝莓", case_weight:12, packaging:"Plastic pint containers", image:"🫐", category:"Fruits" }
     ];
-    let selectedProducts = []; // {productId, hostQuantity, minOrderQuantity, caseWeight, name, image}
-
-    function attachCreateFormHandlers() {
-      const searchInput = qs("#product-search");
-      const results = qs("#search-results");
-      searchInput.addEventListener("input", async function () {
-        const term = this.value.trim().toLowerCase();
-        if (!term) { results.classList.add("hidden"); results.innerHTML=""; return; }
-        const local = productSeed.filter(p => (p.english_name + p.chinese_name + p.id).toLowerCase().includes(term));
-        const { data: db } = await supabase.from("products").select("*").or(`english_name.ilike.%${term}%,chinese_name.ilike.%${term}%,id.ilike.%${term}%`).limit(10);
-        const all = [...local, ...(db||[])];
-        if (!all.length) { results.innerHTML='<div class="p-3 text-gray-500 text-center">No products found</div>'; results.classList.remove("hidden"); return; }
-        results.innerHTML = all.map(p => `
+    let selectedProducts = []; let currentSelectedProduct=null;
+    function attachCreateFormHandlers(){
+      const input = document.querySelector("#product-search"); const results=document.querySelector("#search-results");
+      input.addEventListener("input", async function(){
+        const q=this.value.trim().toLowerCase(); if(!q){ results.classList.add("hidden"); results.innerHTML=""; return; }
+        const local=productSeed.filter(p => (p.english_name+p.chinese_name+p.id).toLowerCase().includes(q));
+        const { data: db } = await supabase.from("products").select("*").or(`english_name.ilike.%${q}%,chinese_name.ilike.%${q}%,id.ilike.%${q}%`).limit(10);
+        const all=[...local, ...(db||[])];
+        if(!all.length){ results.innerHTML='<div class="p-3 text-gray-500 text-center">No products found</div>'; results.classList.remove("hidden"); return; }
+        results.innerHTML = all.map(p=>`
           <button type="button" data-pid="${p.id}" class="w-full text-left p-3 hover:bg-gray-50 border-b last:border-b-0">
-            <div class="flex items-center space-x-3">
-              <div class="text-2xl">${p.image || "📦"}</div>
-              <div class="flex-1">
-                <div class="font-medium text-gray-900">${p.english_name}</div>
-                <div class="text-sm text-gray-600">${p.chinese_name || ""}</div>
-                <div class="text-xs text-gray-500">ID: ${p.id} • ${p.case_weight||"?"} lbs case • ${p.category||""}</div>
-              </div>
+            <div class="flex items-center gap-3">
+              <div class="text-2xl">${p.image||"📦"}</div>
+              <div><div class="font-medium">${p.english_name}</div><div class="text-xs text-gray-500">ID: ${p.id} • ${p.case_weight||"?"} lbs</div></div>
             </div>
           </button>`).join("");
         results.classList.remove("hidden");
-        qsa('#search-results [data-pid]').forEach(btn => btn.onclick = () => selectProduct(all.find(p=>p.id===btn.dataset.pid)));
+        results.querySelectorAll("[data-pid]").forEach(btn => btn.onclick = ()=> selectProduct(all.find(p=>p.id===btn.dataset.pid)));
       });
-      document.addEventListener('click', (e)=>{ if (!qs("#product-search").contains(e.target) && !qs("#search-results").contains(e.target)) qs("#search-results").classList.add("hidden"); });
-      qs("#add-product-btn").onclick = addProductToList;
-      qs("#cancel-product-btn").onclick = ()=>{ qs("#add-product-form").classList.add("hidden"); qs("#selected-product-preview").innerHTML=""; };
-      // Prevent accidental submit refresh
-      qs("#create-request-form").addEventListener("submit", e => e.preventDefault());
+      document.addEventListener("click",(e)=>{ if(!input.contains(e.target) && !results.contains(e.target)) results.classList.add("hidden"); });
+      document.querySelector("#add-product-btn").onclick = addProductToList;
+      document.querySelector("#cancel-product-btn").onclick = ()=>{ document.querySelector("#add-product-form").classList.add("hidden"); document.querySelector("#selected-product-preview").innerHTML=""; };
+      document.querySelector("#create-request-form").addEventListener("submit", submitCreate);
     }
-    function selectProduct(p) {
-      const prev = qs("#selected-product-preview");
-      prev.innerHTML = `
-        <div class="flex items-start space-x-4">
-          <div class="text-4xl">${p.image||"📦"}</div>
-          <div class="flex-1">
-            <h3 class="font-semibold text-gray-900">${p.english_name}</h3>
-            <p class="text-gray-600">${p.chinese_name||""}</p>
-            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="bg-white p-3 rounded-lg border">
-                <p class="text-sm font-medium text-gray-700 mb-1">Total Case Weight</p>
-                <p class="text-2xl font-bold text-indigo-600">${p.case_weight||"?"} lbs</p>
-              </div>
-              <div class="bg-white p-3 rounded-lg border">
-                <p class="text-sm font-medium text-gray-700 mb-1">Packaging</p>
-                <p class="text-sm text-gray-600">${p.packaging||"-"}</p>
-              </div>
-            </div>
-            <div class="mt-3 text-sm text-gray-600"><p><span class="font-medium">Product ID:</span> ${p.id}</p></div>
-          </div>
-        </div>`;
-      qs("#add-product-form").classList.remove("hidden");
-      qs("#host-quantity").value = "";
-      qs("#min-order-quantity").value = "5";
-      qs("#add-product-btn").dataset.pid = p.id;
-      // Cache temp product on button dataset
-      qs("#add-product-btn").dataset.meta = JSON.stringify(p);
+    function selectProduct(p){
+      currentSelectedProduct=p;
+      const prev=document.querySelector("#selected-product-preview");
+      prev.innerHTML = `<div class="flex items-start gap-4"><div class="text-4xl">${p.image||"📦"}</div>
+        <div><div class="font-semibold">${p.english_name}</div><div class="text-sm text-gray-600">ID: ${p.id}</div>
+        <div class="mt-2 grid grid-cols-2 gap-3"><div class="bg-white p-3 rounded border"><div class="text-sm text-gray-600">Total Case</div><div class="text-xl font-bold">${p.case_weight||"?"} lbs</div></div><div class="bg-white p-3 rounded border"><div class="text-sm text-gray-600">Packaging</div><div class="text-sm">${p.packaging||"-"}</div></div></div></div></div>`;
+      document.querySelector("#add-product-form").classList.remove("hidden");
+      document.querySelector("#host-quantity").value=""; document.querySelector("#min-order-quantity").value="5";
     }
-    function addProductToList() {
-      const meta = this.dataset.meta && JSON.parse(this.dataset.meta);
-      if (!meta) return;
-      const qty = parseInt(qs("#host-quantity").value||"0",10);
-      const min = parseInt(qs("#min-order-quantity").value||"5",10);
-      if (!qty || qty<min) { toast(`Enter a valid qty (min ${min})`); return; }
-      if (meta.case_weight && qty > meta.case_weight) { toast(`Qty cannot exceed ${meta.case_weight} lbs`); return; }
-      // Upsert product to DB (so remote users can see it)
-      supabase.from("products").upsert({
-        id: meta.id, english_name: meta.english_name, chinese_name: meta.chinese_name||null,
-        case_weight: meta.case_weight||null, packaging: meta.packaging||null, category: meta.category||null, image: meta.image||"📦"
-      }, { onConflict: "id" });
+    function addProductToList(){
+      const meta=currentSelectedProduct; if(!meta) return;
+      const qty=parseInt(document.querySelector("#host-quantity").value||"0",10);
+      const min=parseInt(document.querySelector("#min-order-quantity").value||"5",10);
+      if(!qty || qty<min){ alert(`Enter a valid qty (min ${min})`); return; }
+      if(meta.case_weight && qty>meta.case_weight){ alert(`Qty cannot exceed ${meta.case_weight} lbs`); return; }
+      supabase.from("products").upsert({ id:meta.id, english_name:meta.english_name, chinese_name:meta.chinese_name||null, case_weight:meta.case_weight||null, packaging:meta.packaging||null, category:meta.category||null, image:meta.image||"📦" }, { onConflict:"id" });
       selectedProducts.push({ productId: meta.id, name: meta.english_name, image: meta.image||"📦", caseWeight: meta.case_weight||null, hostQuantity: qty, minOrderQuantity: min });
       renderSelectedProducts();
-      qs("#add-product-form").classList.add("hidden");
-      qs("#selected-product-preview").innerHTML="";
-      qs("#create-request-btn").disabled = selectedProducts.length === 0;
+      document.querySelector("#add-product-form").classList.add("hidden"); document.querySelector("#selected-product-preview").innerHTML="";
+      document.querySelector("#create-request-btn").disabled = selectedProducts.length===0;
     }
-    function renderSelectedProducts() {
-      const wrap = qs("#selected-products-list");
-      if (!selectedProducts.length) { wrap.innerHTML = ""; return; }
+    function renderSelectedProducts(){
+      const wrap=document.querySelector("#selected-products-list");
       wrap.innerHTML = selectedProducts.map((sp,i)=>`
         <div class="bg-white border rounded-lg p-4 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="text-2xl">${sp.image}</div>
-            <div>
-              <div class="font-medium">${sp.name} • ${sp.productId}</div>
-              <div class="text-xs text-gray-600">Host qty: ${sp.hostQuantity} lbs • Min: ${sp.minOrderQuantity} lbs</div>
-            </div>
-          </div>
+          <div class="flex items-center gap-3"><div class="text-2xl">${sp.image}</div><div><div class="font-medium">${sp.name} • ${sp.productId}</div><div class="text-xs text-gray-600">Host qty: ${sp.hostQuantity} lbs • Min: ${sp.minOrderQuantity} lbs</div></div></div>
           <button type="button" class="px-3 py-1 text-sm border rounded-lg" data-remove="${i}">Remove</button>
-        </div>
-      `).join("");
-      qsa('[data-remove]').forEach(b => b.onclick = ()=>{ selectedProducts.splice(parseInt(b.dataset.remove,10),1); renderSelectedProducts(); qs("#create-request-btn").disabled = selectedProducts.length === 0; });
+        </div>`).join("");
+      document.querySelectorAll("[data-remove]").forEach(b => b.onclick = ()=>{ selectedProducts.splice(parseInt(b.dataset.remove,10),1); renderSelectedProducts(); document.querySelector("#create-request-btn").disabled = selectedProducts.length===0; });
+    }
+    async function submitCreate(e){
+      e.preventDefault();
+      if(!currentUser){ alert("Please log in"); return; }
+      if(!selectedProducts.length){ alert("Add at least one product"); return; }
+      const notes=document.querySelector("#request-notes").value||"";
+      const { data:req, error:e1 } = await supabase.from("group_requests").insert({ host_id: currentUser.id, notes }).select("id").single();
+      if(e1){ alert(e1.message); return; }
+      for(const sp of selectedProducts){
+        const total = sp.caseWeight || (sp.hostQuantity*2);
+        const { data:item, error:e2 } = await supabase.from("request_items").insert({ request_id:req.id, product_id:sp.productId, total_quantity:total, current_quantity:0, min_order_quantity:sp.minOrder_quantity||sp.minOrderQuantity||5, status:"open" }).select("id").single();
+        if(e2){ console.error(e2); continue; }
+        await supabase.from("participants").insert({ request_item_id:item.id, user_id:currentUser.id, quantity:sp.hostQuantity, is_host:true });
+        await supabase.rpc("add_quantity", { p_request_item_id:item.id, p_add_qty:sp.hostQuantity });
+      }
+      selectedProducts=[]; renderSelectedProducts(); document.querySelector("#request-notes").value=""; document.querySelector("#create-request-btn").disabled=true;
+      showSection("browse");
     }
 
-    // Create request submit
-    qs("#create-request-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!currentUser) { toast("Please log in"); return; }
-      if (!selectedProducts.length) { toast("Add at least one product"); return; }
-      const notes = qs("#request-notes").value || "";
-      const { data: req, error: e1 } = await supabase.from("group_requests").insert({ host_id: currentUser.id, notes }).select("id").single();
-      if (e1) { console.error(e1); toast("Failed to create request"); return; }
-      for (const sp of selectedProducts) {
-        const total = sp.caseWeight || (sp.hostQuantity * 2); // fallback
-        const { data: item, error: e2 } = await supabase.from("request_items").insert({
-          request_id: req.id, product_id: sp.productId, total_quantity: total, current_quantity: 0,
-          min_order_quantity: sp.minOrderQuantity, status: "open"
-        }).select("id").single();
-        if (e2) { console.error(e2); toast("Failed to add item"); continue; }
-        const { error: e3 } = await supabase.from("participants").insert({ request_item_id: item.id, user_id: currentUser.id, quantity: sp.hostQuantity, is_host: true });
-        if (e3) console.error(e3);
-        await supabase.rpc("add_quantity", { p_request_item_id: item.id, p_add_qty: sp.hostQuantity });
-      }
-      selectedProducts = []; renderSelectedProducts(); qs("#request-notes").value=""; qs("#create-request-btn").disabled=true;
-      toast("Request created"); showSection("browse");
-    });
-
-    // ==== Browse & Detail ====
-    async function refreshBrowse() {
-      const grid = qs("#requests-grid");
+    // Browse (combined)
+    async function renderRequests(){
+      const grid=document.querySelector("#requests-grid");
       grid.innerHTML = "<div class='col-span-full text-center text-gray-500'>Loading...</div>";
-      try {
-        const { data, error } = await supabase.rpc("browse_requests");
-        if (error) throw error;
-        const term=(qs("#search-requests").value||"").toLowerCase();
-        const status=qs("#filter-status").value;
-        const rows = (data||[]).filter(r => ((r.english_name + (r.chinese_name||"") + r.product_id + (r.host_email||"")).toLowerCase().includes(term)) && (status==="all" ? true : r.status===status));
-        if (!rows.length) { grid.innerHTML = "<div class='col-span-full text-center text-gray-500'>No requests found.</div>"; return; }
+      const term=(document.querySelector("#search-requests").value||"").toLowerCase(); const status=document.querySelector("#filter-status").value;
+      try{
+        const { data, error } = await supabase.rpc("browse_requests_combined");
+        if(error) throw error;
+        const rows=(data||[]).filter(r => {
+          const text = (r.host_email||"") + JSON.stringify(r.items||[]);
+          return text.toLowerCase().includes(term) && (status==="all" ? true : r.status===status);
+        });
+        if(!rows.length){ grid.innerHTML = "<div class='col-span-full text-center text-gray-500'>No requests found.</div>"; return; }
         grid.innerHTML = rows.map(r => {
           const remaining = r.total_quantity - r.current_quantity;
           const pct = Math.round((r.current_quantity / r.total_quantity)*100);
-          return `<div class="bg-white rounded-xl border p-5 shadow-sm card-hover animate-fade-in">
+          const items = r.items || [];
+          const firstImage = items[0]?.image || "📦";
+          return `<div class="bg-white rounded-xl border p-5 shadow-sm card-hover">
             <div class="flex items-start gap-3 mb-3">
-              <div class="text-3xl">${r.image || "📦"}</div>
+              <div class="text-3xl">${firstImage}</div>
               <div class="flex-1">
-                <div class="font-semibold">${r.english_name}</div>
-                <div class="text-sm text-gray-600">${r.chinese_name || ""} • ID: ${r.product_id}</div>
-                <div class="text-xs text-gray-500">Host: ${r.host_email||"-"}</div>
+                <div class="font-semibold">${items.map(it=>it.english_name).join(', ')}</div>
+                <div class="text-xs text-gray-500">Host: ${r.host_full_name||"Host"}</div>
               </div>
             </div>
             <div class="grid grid-cols-3 gap-3 text-sm mb-3">
@@ -433,103 +508,512 @@
               <div class="bg-green-50 p-3 rounded"><div class="text-gray-600">Committed</div><div class="text-xl font-bold text-green-700">${r.current_quantity} lbs</div></div>
               <div class="bg-orange-50 p-3 rounded"><div class="text-gray-600">Remaining</div><div class="text-xl font-bold text-orange-700">${remaining} lbs</div></div>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2 mb-4"><div class="progress-bar h-2 rounded-full" style="width:${pct}%"></div></div>
-            <button type="button" data-open="${r.request_id}" class="w-full bg-indigo-600 text-white py-2 rounded-lg">View / Join</button>
+            <div class="w-full bg-gray-200 rounded-full h-2 mb-3"><div class="progress-bar h-2 rounded-full" style="width:${pct}%"></div></div>
+            <div class="text-xs text-gray-600 mb-3">${items.length} product(s)</div>
+            <div class="flex gap-2">
+              <button type="button" onclick="openDetail(${r.request_id})" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg">View / Join</button>
+
+            </div>
           </div>`;
         }).join("");
-        qsa("[data-open]").forEach(b => b.onclick = () => openDetail(parseInt(b.dataset.open,10)));
-      } catch (ex) {
-        console.error(ex);
-        grid.innerHTML = `<div class="col-span-full bg-red-50 border border-red-200 text-red-700 p-3 rounded">
-          ❌ Failed to load. Install the SQL first (bootstrap script) or check RLS. Error: ${ex.message}
-        </div>`;
+      }catch(ex){
+        grid.innerHTML = `<div class="col-span-full bg-red-50 border border-red-200 text-red-700 p-3 rounded">❌ Failed to load. Install SQL patch (combined RPC) first. Error: ${ex.message}</div>`;
       }
     }
+    document.querySelector("#search-requests").addEventListener("input", renderRequests);
+    document.querySelector("#filter-status").addEventListener("change", renderRequests);
 
-    async function openDetail(requestId) {
-      const { data: rows, error } = await supabase.rpc("request_detail", { p_request_id: requestId });
-      if (error || !rows?.length) { console.error(error); return; }
-      const r = rows[0];
-      const participants = rows.map(x => ({ user_id:x.participant_user_id, email:x.participant_email, quantity:x.participant_quantity, is_host:x.participant_is_host })).filter(p=>p.user_id);
-      const remaining = r.total_quantity - r.current_quantity;
-      const modal = qs("#request-modal"); const body=qs("#modal-content");
-      body.innerHTML = `
-        <div class="p-5 border-b flex items-center justify-between">
-          <div>
-            <h3 class="text-xl font-semibold">${r.english_name} (${r.product_id})</h3>
-            <p class="text-sm text-gray-600">Host: ${r.host_email||"-"} • Created: ${new Date(r.created_at).toLocaleString()}</p>
+    // Detail (combined)
+    async function openDetail(requestId){
+      const { data: rows, error } = await supabase.rpc("request_detail_combined", { p_request_id: requestId });
+      if(error || !rows?.length){ alert(error?.message||"Failed"); return; }
+      const r = rows[0]; const items = r.items || [];
+      const modal=document.querySelector("#request-modal"), body=document.querySelector("#modal-content");
+      const header = `<div class="p-5 border-b flex items-center justify-between">
+          <div><h3 class="text-xl font-semibold">Group Request #${r.request_id}</h3><p class="text-sm text-gray-600">Host: ${r.host_full_name||"Host"} • Created: ${new Date(r.created_at).toLocaleString()}</p></div>
+          <div class="flex items-center gap-2">
+            ${r.i_am_host ? `<button type='button' onclick='cancelWholeRequest(${r.request_id})' class='px-3 py-2 border rounded-lg text-red-600'>Cancel Entire Request</button>` : ''}
+            <button type="button" onclick="document.querySelector('#request-modal').classList.add('hidden')" class="text-gray-600"><i data-lucide='x' class="w-6 h-6"></i></button>
           </div>
-          <button type="button" id="close-modal" class="text-gray-600"><i data-lucide="x" class="w-6 h-6"></i></button>
-        </div>
-        <div class="p-5 space-y-5">
-          <div class="grid grid-cols-3 gap-3 text-sm">
-            <div class="bg-blue-50 p-3 rounded"><div class="text-gray-600">Total</div><div class="text-xl font-bold text-blue-700">${r.total_quantity} lbs</div></div>
-            <div class="bg-green-50 p-3 rounded"><div class="text-gray-600">Committed</div><div class="text-xl font-bold text-green-700">${r.current_quantity} lbs</div></div>
+        </div>`;
+      const list = items.map(it => {
+        const remaining = (it.total_quantity||0) - (it.current_quantity||0);
+        const pct = it.total_quantity ? Math.round((it.current_quantity/it.total_quantity)*100) : 0;
+        const plist = (it.participants||[]).map(p=>`
+          <div class="flex items-center justify-between bg-gray-50 p-2 rounded">
+            <div class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs">${(p.full_name||"U").charAt(0).toUpperCase()}</div><div class="text-sm">${p.full_name||"User"} ${p.is_host?'<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 ml-1">Host</span>':""}</div></div>
+            <div class="text-sm">${p.quantity} lbs</div>
+          </div>`).join("");
+        const iAmHost = !!(it.participants||[]).find(x=>x.user_id === (currentUser&&currentUser.id) && x.is_host);
+        const canAdjust = !(it.status==='cancelled' || it.status==='completed' || it.status==='fulfilled' || it.status==='fullfilled');
+        return `<div class="p-5 border-b last:border-b-0">
+          
+          <div class="flex items-start gap-3 mb-2"><div class="text-2xl">${it.image||"📦"}</div><div class="flex-1"><div class="font-semibold">${it.english_name} • ${it.product_id}</div><div class="text-xs text-gray-500">Min: ${it.min_order_quantity} lbs</div></div></div>
+          <div class="grid grid-cols-3 gap-3 text-sm mb-2">
+            <div class="bg-blue-50 p-3 rounded"><div class="text-gray-600">Total</div><div class="text-xl font-bold text-blue-700">${it.total_quantity} lbs</div></div>
+            <div class="bg-green-50 p-3 rounded"><div class="text-gray-600">Committed</div><div class="text-xl font-bold text-green-700">${it.current_quantity} lbs</div></div>
             <div class="bg-orange-50 p-3 rounded"><div class="text-gray-600">Remaining</div><div class="text-xl font-bold text-orange-700">${remaining} lbs</div></div>
           </div>
-          <div>
-            <h4 class="font-semibold mt-2 mb-2">Participants (${participants.length})</h4>
-            <div class="space-y-2">
-              ${participants.map(p=>`<div class="flex items-center justify-between bg-gray-50 p-2 rounded">
-                <div class="flex items-center gap-2">
-                  <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs">${(p.email||"U").charAt(0).toUpperCase()}</div>
-                  <div class="text-sm">${p.email||"user"}</div>
-                  ${p.is_host?'<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Host</span>':""}
-                </div>
-                <div class="text-sm">${p.quantity} lbs</div>
-              </div>`).join("")}
-            </div>
-          </div>
-          <div class="border-t pt-4">
-            <label class="block text-sm font-medium mb-1">Your Quantity (lbs)</label>
-            <input id="join-qty" type="number" min="${r.min_order_quantity}" max="${remaining}" class="w-full px-3 py-2 border rounded-lg" placeholder="Min ${r.min_order_quantity} lbs">
-            <p class="text-xs text-gray-500 mt-1">Min: ${r.min_order_quantity} • Available: ${remaining}</p>
-            <div class="mt-3 flex gap-2">
-              <button type="button" id="join-btn" class="flex-1 bg-green-600 text-white py-2 rounded-lg">Join / Update</button>
-              <button type="button" id="close2-btn" class="px-4 py-2 border rounded-lg">Close</button>
+          <div class="w-full bg-gray-200 rounded-full h-2 mb-3"><div class="progress-bar h-2 rounded-full" style="width:${pct}%"></div></div>
+          <h4 class="font-semibold mb-2">Participants (${(it.participants||[]).length})</h4>
+          <div class="space-y-2">${plist || '<div class="text-sm text-gray-500">No participants yet</div>'}</div>
+          <div class="border-t pt-3 mt-3">
+            <label class="block text-sm font-medium mb-1">Adjust Your Quantity (lbs)</label>
+            <input id="join-qty-${it.request_item_id}" type="number" min="${it.min_order_quantity}" max="${remaining}" class="w-full px-3 py-2 border rounded-lg" placeholder="Min ${it.min_order_quantity} lbs" ${!canAdjust?'disabled':''}>
+            <div class="mt-3 flex gap-2 flex-wrap">
+              <button type="button" onclick="setQuantityItem(${it.request_item_id}, ${it.min_order_quantity}, ${remaining})" class="flex-1 bg-green-600 text-white py-2 rounded-lg" ${!canAdjust?'disabled':''}>Save Quantity</button>
+              ${iAmHost ? `<button type='button' onclick='cancelItem(${it.request_item_id})' class='px-3 py-2 border rounded-lg text-red-600'>Cancel Product</button>` : `<button type='button' onclick='optOutItem(${it.request_item_id})' class='px-3 py-2 border rounded-lg'>Opt out</button>`}
+              ${it.status==='completed' ? `<button type='button' onclick='openChatItem(${it.request_item_id})' class='px-3 py-2 border rounded-lg'>Chat💬</button>` : `<button type='button' disabled class='px-3 py-2 border rounded-lg opacity-50 cursor-not-allowed' title='Chat available after fulfillment'>Chat🔒</button>`}
             </div>
           </div>
         </div>`;
+      }).join("");
+      body.innerHTML = header + `<div>${list}</div>`;
       lucide.createIcons();
       modal.classList.remove("hidden");
-      qs("#close-modal").onclick = ()=> modal.classList.add("hidden");
-      qs("#close2-btn").onclick = ()=> modal.classList.add("hidden");
-      qs("#join-btn").onclick = async ()=>{
-        if (!currentUser) { toast("Please log in"); return; }
-        const qty = parseInt(qs("#join-qty").value||"0",10);
-        if (!qty || qty<r.min_order_quantity || qty>remaining) { toast("Invalid qty"); return; }
-        const { error: e1 } = await supabase.from("participants").upsert({ request_item_id: r.request_item_id, user_id: currentUser.id, quantity: qty, is_host: false }, { onConflict: "request_item_id,user_id" });
-        if (e1) { console.error(e1); toast("Failed"); return; }
-        await supabase.rpc("recalc_request_item", { p_request_item_id: r.request_item_id });
-        toast("Saved"); refreshBrowse(); openDetail(requestId);
-      };
+    }
+    async function joinOrUpdateCombined(requestItemId, minOrder, remaining){
+      if(!currentUser){ alert("Please log in"); return; }
+      const input=document.querySelector("#join-qty-"+requestItemId);
+      const qty=parseInt(input.value||"0",10);
+      if(!qty || qty<minOrder || qty>remaining){ alert("Invalid quantity"); return; }
+      const { error:e1 } = await supabase.from("participants").upsert({ request_item_id: requestItemId, user_id: currentUser.id, quantity: qty, is_host:false }, { onConflict:"request_item_id,user_id" });
+      if(e1){ alert(e1.message); return; }
+      await supabase.rpc("recalc_request_item", { p_request_item_id: requestItemId });
+      renderRequests();
     }
 
-    // ==== My groups ====
-    async function refreshMine() {
-      const grid=qs("#my-groups-grid"); if(!currentUser){ grid.innerHTML="<div class='text-gray-500'>Log in to see your groups.</div>"; return; }
-      const { data, error } = await supabase.rpc("my_groups"); if (error) { grid.innerHTML="<div class='text-red-600'>Failed to load.</div>"; return; }
-      if (!data.length) { grid.innerHTML="<div class='text-gray-500'>No groups yet.</div>"; return; }
-      grid.innerHTML = data.map(r => `<div class="bg-white rounded-xl border p-5 shadow-sm">
-        <div class="font-semibold mb-1">${r.english_name} • ${r.product_id}</div>
-        <div class="text-xs text-gray-600 mb-2">Role: ${r.is_host?"Host":"Participant"} • Qty: ${r.quantity} lbs</div>
-        <button type="button" data-open="${r.request_id}" class="w-full bg-indigo-600 text-white py-2 rounded-lg">Open</button>
-      </div>`).join("");
-      qsa("#my-groups-grid [data-open]").forEach(btn => btn.onclick = () => openDetail(parseInt(btn.getAttribute("data-open"),10)));
+    // Chat (uses rpc chat_list to avoid relational embed issues)
+    let chatSub=null; let currentChatRequestItemId=null;
+    async function openChatItem(requestItemId){
+      currentChatRequestItemId=requestItemId;
+      document.querySelector("#chat-modal").classList.remove("hidden");
+      await loadChatMessages();
+      if(chatSub){ await chatSub.unsubscribe(); chatSub=null; }
+      chatSub = supabase.channel("chat:item:"+requestItemId)
+        .on("postgres_changes", { event:"INSERT", schema:"public", table:"chat_messages", filter:`request_item_id=eq.${requestItemId}` }, payload => { appendChat(payload.new); })
+        .subscribe();
+      document.querySelector("#chat-input").focus();
+    }
+    function closeChatModal(){ document.querySelector("#chat-modal").classList.add("hidden"); if(chatSub){ chatSub.unsubscribe(); chatSub=null; } currentChatRequestItemId=null; }
+    async function loadChatMessages(){
+      const box=document.querySelector("#chat-messages"); box.innerHTML="";
+      const { data, error } = await supabase.rpc("chat_list_by_item", { p_request_item_id: currentChatRequestItemId });
+      if(error){ box.innerHTML = "<div class='text-gray-500 p-4'>Failed to load chat.</div>"; return; }
+      for(const m of data){ appendChat(m); }
+      box.scrollTop = box.scrollHeight;
+    }
+    function appendChat(msg){
+      const box=document.querySelector("#chat-messages");
+      const sender = msg.full_name || msg.sender_name || "User";
+      const mine = currentUser && msg.user_id === currentUser.id;
+      const row=document.createElement("div");
+      row.className="flex " + (mine ? "justify-end" : "justify-start");
+      row.innerHTML = `<div class="chat-bubble ${mine?'bg-indigo-600 text-white':'bg-gray-100 text-gray-800'} px-3 py-2 rounded-lg"><div class="text-xs opacity-80 mb-0.5">${sender}</div>${escapeHtml(msg.message||"")}</div>`;
+      box.appendChild(row);
+    }
+    async function sendMessage(){
+      if(!currentUser){ alert("Please log in"); return; }
+      const input=document.querySelector("#chat-input"); const text=input.value.trim(); if(!text) return;
+      const { error } = await supabase.from("chat_messages").insert({ request_item_id: currentChatRequestItemId, user_id: currentUser.id, message: text, sender_name: null });
+      if(error){ alert(error.message); return; }
+      input.value="";
+    }
+    function escapeHtml(s){ return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+    // Profile save
+    document.querySelector("#profile-form").addEventListener("submit", async (e)=>{
+      e.preventDefault(); if(!currentUser) return alert("Please log in");
+      const full_name=document.querySelector("#profile-full-name").value.trim();
+      const email=document.querySelector("#profile-email-input").value.trim();
+      const phone=document.querySelector("#profile-phone").value.trim();
+      const { error:e1 } = await supabase.from("profiles").update({ full_name, email, phone }).eq("id", currentUser.id);
+      if(e1){ alert(e1.message); return; }
+      if(email && email !== currentUser.email){ const { error:e2 } = await supabase.auth.updateUser({ email }); if(e2) alert("Email change needs verification: "+e2.message); }
+      await loadSession();
+      alert("Profile saved");
+    });
+
+    // My groups
+    async function renderMyGroups(){
+      const grid=document.querySelector("#my-groups-grid"); if(!currentUser){ grid.innerHTML="<div class='text-gray-500'>Log in to see your groups.</div>"; return; }
+      const { data, error } = await supabase.rpc("my_groups"); if(error){ grid.innerHTML="<div class='text-red-600'>Failed to load.</div>"; return; }
+      if(!data.length){ grid.innerHTML="<div class='text-gray-500'>No groups yet.</div>"; return; }
+      grid.innerHTML = data.map(r=>`<div class="bg-white rounded-xl border p-5 shadow-sm"><div class="font-semibold mb-1">${r.english_name} • ${r.product_id}</div><div class="text-xs text-gray-600 mb-2">Role: ${r.is_host?'Host':'Participant'} • Qty: ${r.quantity} lbs</div><div class="flex gap-2"><button type="button" onclick="openDetail(${r.request_id})" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg">Open</button><button type="button" onclick="openChat(${r.request_id})" class="px-3 py-2 border rounded-lg">Chat💬</button></div></div>`).join("");
     }
 
-    // ==== Search/filter bindings ====
-    qs("#search-requests").addEventListener("input", refreshBrowse);
-    qs("#filter-status").addEventListener("change", refreshBrowse);
-    qsa("button[data-section]").forEach(b => b.onclick = ()=>showSection(b.dataset.section));
-
-    // ==== Init ====
-    (async function init(){
+    // Init
+    document.addEventListener("DOMContentLoaded", async ()=>{
       await loadSession();
       attachCreateFormHandlers();
       showSection("browse");
-      await refreshBrowse();
-    })();
-  </script>
+    });
+  
+async function setQuantityItem(requestItemId, minOrder, remaining){
+  if(!currentUser){ alert("Please log in"); return; }
+  const input = document.querySelector("#join-qty-"+requestItemId);
+  const qty = parseInt(input.value||"0",10);
+  if(isNaN(qty) || qty<0){ alert("Invalid quantity"); return; }
+  if(qty>remaining){ if(!confirm("Quantity exceeds remaining. Continue?")) return; }
+  try{
+    const { data, error } = await supabase.rpc("set_quantity_request_item", { p_request_item_id: requestItemId, p_quantity: qty });
+    if(error) throw error;
+    await renderRequests(); // refresh cards
+    // also refresh the open modal
+    const open = !document.querySelector("#request-modal").classList.contains("hidden");
+    if(open){ const idText = document.querySelector("#modal-content")?.querySelector("h3")?.textContent || ""; }
+  }catch(ex){ alert(ex.message); }
+}
+
+async function optOutItem(requestItemId){
+  if(!currentUser){ alert("Please log in"); return; }
+  if(!confirm("Opt out of this product? Your quantity will be set to 0.")) return;
+  try{
+    const { data, error } = await supabase.rpc("opt_out_request_item", { p_request_item_id: requestItemId });
+    if(error) throw error;
+    await renderRequests();
+    alert("You have opted out of this product.");
+  }catch(ex){ alert(ex.message); }
+}
+
+async function cancelItem(requestItemId){
+  if(!currentUser){ alert("Please log in"); return; }
+  if(!confirm("Cancel this product for everyone? This cannot be undone.")) return;
+  try{
+    const { data, error } = await supabase.rpc("opt_out_request_item", { p_request_item_id: requestItemId });
+    if(error) throw error;
+    await renderRequests();
+    alert("Product cancelled.");
+  }catch(ex){ alert(ex.message); }
+}
+
+
+async function cancelWholeRequest(requestId){
+  if(!currentUser){ alert("Please log in"); return; }
+  if(!confirm("Cancel the entire request and delete all products? This cannot be undone.")) return;
+  try{
+    const { data, error } = await supabase.rpc("cancel_request", { p_request_id: requestId });
+    if(error) throw error;
+    document.querySelector("#request-modal").classList.add("hidden");
+    await renderRequests();
+    alert("Request cancelled.");
+  }catch(ex){ alert(ex.message); }
+}
+
+</script>
+
+<script>
+(function(){
+  if(!window.supabase || !supabase.channel) return;
+  if(window._chatSubV9) try{ window._chatSubV9.unsubscribe(); }catch(_){}
+  
+window._chatSubV9 = supabase.channel('chat-realtime-v9')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, (payload)=>{
+    try {
+      const box = document.querySelector('#chat-messages');
+      const openItemId = window.currentChatRequestItemId || window.currentOpenRequestId;
+      // Only append if the message belongs to the currently open product chat
+      if (box && payload.new && payload.new.request_item_id === openItemId) {
+        if (typeof appendChat === 'function') {
+          appendChat(payload.new);
+        } else {
+          const row = document.createElement('div');
+          row.className = 'text-sm text-gray-800';
+          row.textContent = payload.new.message || '';
+          box.appendChild(row);
+        }
+        // auto-scroll
+        box.scrollTop = box.scrollHeight;
+      }
+    } catch (e) {
+      console.error('chat realtime append error', e);
+    }
+  })
+  .subscribe();
+
+})();
+</script>
+
+
+<script>
+// v9.2 chat fixes: enter-to-send + instant append + auto-refresh after insert
+(function(){
+  function bindChatHandlers(){
+    const input = document.querySelector('#chat-input');
+    const sendBtn = document.querySelector('#chat-send');
+    if(input && !input._enterBound){
+      input.addEventListener('keydown', async (e)=>{
+        if(e.key === 'Enter' && !e.shiftKey){
+          e.preventDefault();
+          await window.sendChat?.();
+        }
+      });
+      input._enterBound = true;
+    }
+    if(sendBtn && !sendBtn._clickBound){
+      sendBtn.addEventListener('click', async ()=>{ await window.sendChat?.(); });
+      sendBtn._clickBound = true;
+    }
+  }
+
+  // Fallback render if app doesn't provide loadChat/appendChat
+  async function refreshChatFallback(){
+    try{
+      const box = document.querySelector('#chat-messages');
+      if(!box || !window.currentChatRequestItemId || !window.supabase?.rpc) return;
+      const { data, error } = await supabase.rpc('chat_list_by_item', { p_request_item_id: window.currentChatRequestItemId });
+      if(error) throw error;
+      box.innerHTML = '';
+      (data||[]).forEach(msg=>{
+        const row = document.createElement('div');
+        row.className = 'mb-2';
+        row.innerHTML = `<div class="text-xs opacity-60">${(msg.full_name||msg.sender_name||'User')}</div><div class="text-sm">${(msg.message||'')}</div>`;
+        box.appendChild(row);
+      });
+      box.scrollTop = box.scrollHeight;
+    }catch(ex){ console.error('refreshChatFallback error', ex); }
+  }
+
+  // Strong send function that always appends + refreshes
+  window.sendChat = async function(){
+    try{
+      const input = document.querySelector('#chat-input');
+      if(!input) return;
+      const text = (input.value||'').trim();
+      if(!text){ return; }
+      if(!window.currentChatRequestItemId || !window.supabase) { alert('Chat not ready'); return; }
+      // Insert
+      const { error } = await supabase.from('chat_messages').insert({
+        request_item_id: window.currentChatRequestItemId,
+        message: text
+      });
+      if(error){ alert(error.message||'Failed to send'); return; }
+      // Optimistic append
+      const box = document.querySelector('#chat-messages');
+      if(box){
+        const row = document.createElement('div');
+        row.className = 'mb-2';
+        row.innerHTML = `<div class="text-xs opacity-60">You</div><div class="text-sm">${text}</div>`;
+        box.appendChild(row);
+        box.scrollTop = box.scrollHeight;
+      }
+      input.value='';
+      // Ensure we show the canonical, server-enriched view
+      if(typeof window.loadChat === 'function'){
+        await window.loadChat();
+      }else{
+        await refreshChatFallback();
+      }
+    }catch(ex){
+      console.error('sendChat error', ex);
+    }
+  };
+
+  // Wrap openChatItem to (a) set currentChatRequestItemId and (b) bind handlers
+  function wrapOpenChat(){
+    if(typeof window.openChatItem !== 'function' || window.openChatItem._wrappedEnterSend) return;
+    const original = window.openChatItem;
+    window.openChatItem = async function(requestItemId){
+      window.currentChatRequestItemId = requestItemId;
+      const res = await original.apply(this, arguments);
+      // bind after next tick so modal DOM exists
+      setTimeout(()=>{ bindChatHandlers(); }, 50);
+      return res;
+    };
+    window.openChatItem._wrappedEnterSend = true;
+  }
+
+  // Also try to bind when modal DOM changes
+  const observer = new MutationObserver(()=>{ bindChatHandlers(); });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    wrapOpenChat();
+    bindChatHandlers();
+  });
+})();
+</script>
+
+
+<script>
+// v9.3: ensure user_id is included on insert and message appears instantly
+(function(){
+  async function getCurrentUserId(){
+    try{
+      if(window.currentUser && currentUser.id) return currentUser.id;
+      if(window.supabase?.auth?.getUser){
+        const { data } = await supabase.auth.getUser();
+        return data?.user?.id || null;
+      }
+    }catch(_){}
+    return null;
+  }
+
+  // Override sendChat to always include user_id and show immediately
+  const origSend = window.sendChat;
+  window.sendChat = async function(){
+    const input = document.querySelector('#chat-input') || document.querySelector('textarea[data-role="chat-input"]');
+    if(!input) return;
+    const text = (input.value||'').trim();
+    if(!text) return;
+    const rid = window.currentChatRequestItemId;
+    if(!rid){ alert('Chat not ready'); return; }
+
+    const uid = await getCurrentUserId();
+    // optimistic append
+    const box = document.querySelector('#chat-messages');
+    if(box){
+      const row = document.createElement('div');
+      row.className = 'mb-2';
+      row.innerHTML = `<div class="text-xs opacity-60">You</div><div class="text-sm">${text}</div>`;
+      box.appendChild(row);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // server insert (with user_id + request_item_id)
+    try{
+      const { error } = await supabase.from('chat_messages').insert({
+        request_item_id: rid,
+        user_id: uid,            // include user_id explicitly
+        message: text,
+        sender_name: null
+      });
+      if(error){ alert(error.message||'Failed to send'); }
+    }catch(ex){ console.error(ex); }
+
+    input.value='';
+  };
+
+  // Bind Enter-to-send again in case DOM changed
+  function bindEnter(){
+    const input = document.querySelector('#chat-input') || document.querySelector('textarea[data-role="chat-input"]');
+    if(!input || input._enterV93) return;
+    input.addEventListener('keydown', async (e)=>{
+      if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        await window.sendChat();
+      }
+    });
+    input._enterV93 = true;
+  }
+
+  // Run now and on DOM updates
+  bindEnter();
+  const mo = new MutationObserver(()=>bindEnter());
+  mo.observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
+
 </body>
 </html>
+
+<script>
+(function(){
+  const indicator = document.getElementById('updating-indicator');
+  const fab = document.getElementById('cancel-request-fab');
+  let refreshTimer = null;
+  let currentOpenRequestId = null;
+  function showUpdating(){ if(indicator) indicator.classList.add('show'); }
+  function hideUpdating(){ if(indicator) indicator.classList.remove('show'); }
+
+  function debounceRefresh(){
+    showUpdating();
+    if(refreshTimer) clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(async ()=>{
+      try{
+        if (typeof renderRequests === 'function') await renderRequests();
+        const mySec = document.querySelector('#my-groups-section');
+        if (mySec && !mySec.classList.contains('hidden') && typeof renderMyGroups === 'function') {
+          await renderMyGroups();
+        }
+        if(currentOpenRequestId && typeof supabase?.rpc === 'function'){
+          try{
+            const { data: rows } = await supabase.rpc('request_detail_combined', { p_request_id: currentOpenRequestId });
+            if(!rows || !rows.length){ hideFab(); }
+            else { if(typeof openDetail === 'function') openDetail(currentOpenRequestId); }
+          }catch(_){ hideFab(); }
+        }
+      } finally { hideUpdating(); }
+    }, 250);
+  }
+
+  function showFab(){ if(fab) fab.classList.add('show'); }
+  function hideFab(){ if(fab) fab.classList.remove('show'); currentOpenRequestId = null; }
+
+  async function startRealtime(){
+    if(!window.supabase || !supabase.channel) return;
+    if(window._reqSub){ try{ await window._reqSub.unsubscribe(); }catch(e){} }
+    window._reqSub = supabase.channel('requests-realtime-v9')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'request_items' }, debounceRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'group_requests' }, debounceRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'participants' }, debounceRefresh)
+      .subscribe();
+
+    if(window._chatSubV9){ try{ await window._chatSubV9.unsubscribe(); }catch(e){} }
+    window._chatSubV9 = supabase.channel('chat-realtime-v9')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, (payload)=>{
+        const box = document.querySelector('#chat-messages');
+        if(box){
+          try{
+            if(typeof appendChat === 'function'){ appendChat(payload.new); }
+            else {
+              const div = document.createElement('div');
+              div.className = 'text-sm text-gray-700';
+              div.textContent = payload.new.message || '';
+              box.appendChild(div);
+            }
+            box.scrollTop = box.scrollHeight;
+          }catch(_){ debounceRefresh(); }
+        }else{ debounceRefresh(); }
+      })
+      .subscribe();
+  }
+
+  function wrapOpenDetail(){
+    if(typeof openDetail !== 'function' || openDetail._wrappedV9) return;
+    const original = openDetail;
+    window.openDetail = async function(requestId){
+      currentOpenRequestId = requestId;
+      const res = await original.apply(this, arguments);
+      try{
+        if(typeof supabase?.rpc === 'function'){
+          const { data } = await supabase.rpc('is_host_for_request', { p_request_id: requestId });
+          if(data === true){ showFab(); } else { hideFab(); }
+        } else { hideFab(); }
+      }catch(_){ hideFab(); }
+      return res;
+    };
+    window.openDetail._wrappedV9 = true;
+  }
+
+  if(fab){
+    fab.addEventListener('click', async ()=>{
+      if(!currentOpenRequestId) return;
+      if(!confirm('Cancel the entire request and delete all products? This cannot be undone.')) return;
+      try{
+        showUpdating();
+        const { error } = await supabase.rpc('cancel_request', { p_request_id: currentOpenRequestId });
+        if(error) throw error;
+        hideFab();
+        if (typeof renderRequests === 'function') await renderRequests();
+        if (typeof renderMyGroups === 'function') await renderMyGroups();
+        const modal = document.querySelector('#request-modal');
+        if(modal) modal.classList.add('hidden');
+      }catch(ex){ alert(ex.message || 'Failed to cancel request'); }
+      finally{ hideUpdating(); }
+    });
+  }
+
+  // Auto-scroll chat for any new nodes
+  const chatBox = document.querySelector('#chat-messages');
+  if(chatBox){
+    const obs = new MutationObserver(()=>{ chatBox.scrollTop = chatBox.scrollHeight; });
+    obs.observe(chatBox, { childList: true });
+  }
+
+  document.addEventListener('DOMContentLoaded', async ()=>{
+    wrapOpenDetail();
+    await startRealtime();
+  });
+})();
+</script>
